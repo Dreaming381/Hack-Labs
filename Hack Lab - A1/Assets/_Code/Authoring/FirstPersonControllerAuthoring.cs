@@ -42,7 +42,7 @@ namespace A1
         public float extraGroundCheckDistanceWhileInAir    = 0.1f;
 
         [Header("Dynamics")]
-        public float springFrequency    = 1000f;
+        public float springFrequency    = 10f;
         public float springDampingRatio = 1f;
         public float fallGravity        = 9.81f;
         public float maxFallSpeed       = 100f;

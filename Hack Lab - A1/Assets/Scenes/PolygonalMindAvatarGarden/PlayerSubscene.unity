@@ -164,6 +164,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eeccd0bcc3791084c947cf0ada5e150c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  walkForwardTopSpeed: 5
+  walkForwardAcceleration: 50
+  walkForwardDeceleration: 50
+  walkReverseTopSpeed: 3
+  walkReverseAcceleration: 30
+  walkReverseDeceleration: 50
+  walkStrafeTopSpeed: 5
+  walkStrafeAcceleration: 30
+  walkStrafeDeceleration: 30
+  airForwardTopSpeed: 7
+  airForwardAcceleration: 10
+  airForwardDeceleration: 10
+  airReverseTopSpeed: 7
+  airReverseAcceleration: 10
+  airReverseDeceleration: 10
+  airStrafeTopSpeed: 7
+  airStrafeAcceleration: 10
+  airStrafeDeceleration: 10
+  capsuleRadius: 0.3
+  capsuleHeight: 1.2
+  skinWidth: 0.01
+  targetHoverHeight: 0.5
+  extraGroundCheckDistanceWhileGrounded: 0.6
+  extraGroundCheckDistanceWhileInAir: 0.1
+  springFrequency: 3
+  springDampingRatio: 1
+  fallGravity: 9.81
+  maxFallSpeed: 100
+  coyoteTime: 0.033
 --- !u!1 &1316180709
 GameObject:
   m_ObjectHideFlags: 0

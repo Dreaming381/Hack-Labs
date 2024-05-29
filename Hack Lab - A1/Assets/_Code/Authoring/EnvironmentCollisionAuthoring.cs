@@ -17,6 +17,7 @@ namespace A1
         public Mode mode;
     }
 
+    [BakeDerivedTypes]
     public class EnvironmentCollisionAuthoringBaker : Baker<Collider>
     {
         static List<Collider> s_colliderCache = new List<Collider>();
