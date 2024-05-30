@@ -52,9 +52,12 @@ namespace A1
                 }
             }
 
+            float2 move = actions.Move.ReadValue<UnityEngine.Vector2>();
+
             var fpda = new FirstPersonDesiredActions
             {
                 lookDirectionFromForward = look,
+                move                     = move
             };
 
             foreach (var entityActions in SystemAPI.Query<RefRW<FirstPersonDesiredActions> >().WithAll<PlayerTag>())

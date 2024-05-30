@@ -53,15 +53,10 @@ namespace A1
                 // Todo: Does it feel better to apply rotation now or at the end?
                 ApplyRotation(transform, ref state, in desiredActions, initialGroundCheckResult.groundFound);
 
-                if (!initialGroundCheckResult.groundFound)
-                {
-                    state.velocity.y -= stats.fallGravity * deltaTime;
-                }
-
-                var collideAndSlidePosition = startingPosition;
-                // This is where we will do collide-n-slide
-                // Make sure to update velocity afterwards (PBD style), the following line is temporary
-                collideAndSlidePosition += state.velocity * deltaTime;
+                ApplyGravity(initialGroundCheckResult.groundFound, ref state.velocity, in stats);
+                ApplyMoveInput(desiredActions.move, transform.worldRotation, initialGroundCheckResult.groundFound, ref state.velocity, in stats);
+                CollideAndSlide(startingPosition, ref state.velocity, in stats);
+                var collideAndSlidePosition = startingPosition + state.velocity * deltaTime;
 
                 var afterMoveGroundCheckDistance = stats.targetHoverHeight + math.select(stats.extraGroundCheckDistanceWhileInAir,
                                                                                          stats.extraGroundCheckDistanceWhileGrounded,
@@ -85,8 +80,8 @@ namespace A1
                 var deltaForward        = new float3(deltaX, 0f, math.sqrt(1f - deltaX * deltaX));
                 var deltaRotation       = quaternion.LookRotation(deltaForward, math.up());
                 transform.localRotation = math.mul(deltaRotation, transform.localRotation);
-                if (grounded)
-                    state.velocity = math.rotate(deltaRotation, state.velocity);
+                //if (grounded)
+                //    state.velocity = math.rotate(deltaRotation, state.velocity);
             }
 
             struct CheckGroundResult
@@ -130,6 +125,67 @@ namespace A1
                                        ref dummyVelocity, inertialB, default,
                                        in parameters, deltaTime, 1f / deltaTime);
                 velocity = simVelocity.linear;
+            }
+
+            void ApplyGravity(bool isGrounded, ref float3 velocity, in FirstPersonControllerStats stats)
+            {
+                if (!isGrounded)
+                {
+                    velocity.y -= stats.fallGravity * deltaTime;
+                }
+                velocity.y = math.max(velocity.y, -stats.maxFallSpeed);
+            }
+
+            void ApplyMoveInput(float2 move, quaternion rotation, bool isGrounded, ref float3 velocity, in FirstPersonControllerStats stats)
+            {
+                var moveStats       = isGrounded ? stats.walkStats : stats.airStats;
+                var forwardVelocity = math.dot(math.forward(rotation), velocity);
+                var rightVelocity   = math.dot(math.rotate(rotation, math.right()), velocity);
+                var newVelocities   = Physics.StepVelocityWithInput(move.yx,
+                                                                    new float2(forwardVelocity, rightVelocity),
+                                                                    new float2(moveStats.forwardAcceleration, moveStats.strafeAcceleration),
+                                                                    new float2(moveStats.forwardDeceleration, moveStats.strafeDeceleration),
+                                                                    new float2(moveStats.forwardTopSpeed, moveStats.strafeTopSpeed),
+                                                                    new float2(moveStats.reverseAcceleration, moveStats.strafeAcceleration),
+                                                                    new float2(moveStats.reverseDeceleration, moveStats.strafeDeceleration),
+                                                                    new float2(moveStats.reverseTopSpeed, moveStats.strafeTopSpeed),
+                                                                    deltaTime);
+                velocity.zx = math.rotate(rotation, newVelocities.yx.x0y()).zx;
+            }
+
+            void CollideAndSlide(float3 startPosition, ref float3 velocity, in FirstPersonControllerStats stats)
+            {
+                var      moveVector        = velocity * deltaTime;
+                var      distanceRemaining = math.length(moveVector);
+                var      currentTransform  = new TransformQvvs(startPosition, quaternion.identity);
+                var      moveDirection     = math.normalize(moveVector);
+                Collider collider          = new CapsuleCollider(new float3(0f, stats.capsuleRadius, 0f),
+                                                                 new float3(0f, stats.capsuleHeight - stats.capsuleRadius, 0f),
+                                                                 stats.capsuleRadius);
+
+                for (int iteration = 0; iteration < 32; iteration++)
+                {
+                    if (distanceRemaining < 0f)
+                        break;
+                    var end = currentTransform.position + moveDirection * distanceRemaining;
+                    if (Physics.ColliderCast(in collider, in currentTransform, end, in staticEnvironmentCollisionLayer, out var hitInfo, out _))
+                    {
+                        currentTransform.position += moveDirection * (hitInfo.distance - stats.skinWidth);
+                        distanceRemaining         -= hitInfo.distance;
+                        if (math.dot(hitInfo.normalOnTarget, moveDirection) < -0.9f) // If the obstacle directly opposes our movement
+                            break;
+                        // LookRotation corrects an "up" vector to be perpendicular to the "forward" vector. We cheat this to get a new moveDirection perpendicular to the normal.
+                        moveDirection = math.mul(quaternion.LookRotation(hitInfo.normalOnCaster, moveDirection), math.up());
+                    }
+                    else
+                    {
+                        currentTransform.position += moveDirection * distanceRemaining;
+                        distanceRemaining          = 0f;
+                    }
+                }
+                velocity = (currentTransform.position - startPosition) / deltaTime;
+                if (math.length(currentTransform.position - startPosition) < math.EPSILON)
+                    velocity = float3.zero;
             }
         }
     }

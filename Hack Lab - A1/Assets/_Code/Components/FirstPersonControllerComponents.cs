@@ -8,6 +8,7 @@ namespace A1
     public struct FirstPersonDesiredActions : IComponentData
     {
         public float2 lookDirectionFromForward;  // Assume z = sqrt(1 - lengthSq)
+        public float2 move;
     }
 
     public struct FirstPersonVerticalAimStats : IComponentData

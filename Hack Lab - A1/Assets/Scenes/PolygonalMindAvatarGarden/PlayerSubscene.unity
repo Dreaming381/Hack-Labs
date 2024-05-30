@@ -144,7 +144,7 @@ Transform:
   m_GameObject: {fileID: 1242632874}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 6.5, z: 0}
+  m_LocalPosition: {x: 1.89, y: 6.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -164,22 +164,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eeccd0bcc3791084c947cf0ada5e150c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  walkForwardTopSpeed: 5
-  walkForwardAcceleration: 50
-  walkForwardDeceleration: 50
-  walkReverseTopSpeed: 3
-  walkReverseAcceleration: 30
-  walkReverseDeceleration: 50
-  walkStrafeTopSpeed: 5
-  walkStrafeAcceleration: 30
-  walkStrafeDeceleration: 30
-  airForwardTopSpeed: 7
+  walkForwardTopSpeed: 3
+  walkForwardAcceleration: 20
+  walkForwardDeceleration: 20
+  walkReverseTopSpeed: 2
+  walkReverseAcceleration: 20
+  walkReverseDeceleration: 20
+  walkStrafeTopSpeed: 2
+  walkStrafeAcceleration: 20
+  walkStrafeDeceleration: 20
+  airForwardTopSpeed: 4
   airForwardAcceleration: 10
   airForwardDeceleration: 10
-  airReverseTopSpeed: 7
+  airReverseTopSpeed: 4
   airReverseAcceleration: 10
   airReverseDeceleration: 10
-  airStrafeTopSpeed: 7
+  airStrafeTopSpeed: 4
   airStrafeAcceleration: 10
   airStrafeDeceleration: 10
   capsuleRadius: 0.3
@@ -188,7 +188,7 @@ MonoBehaviour:
   targetHoverHeight: 0.5
   extraGroundCheckDistanceWhileGrounded: 0.6
   extraGroundCheckDistanceWhileInAir: 0.1
-  springFrequency: 3
+  springFrequency: 1
   springDampingRatio: 1
   fallGravity: 9.81
   maxFallSpeed: 100
@@ -222,7 +222,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.8, z: 0}
-  m_LocalScale: {x: 0.9, y: 0.9, z: 0.9}
+  m_LocalScale: {x: 0.6, y: 0.6, z: 0.6}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1897714282}
