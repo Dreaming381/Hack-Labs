@@ -40,12 +40,20 @@ namespace A1
         public float targetHoverHeight                     = 0.5f;
         public float extraGroundCheckDistanceWhileGrounded = 0.6f;
         public float extraGroundCheckDistanceWhileInAir    = 0.1f;
+        public float maxSlope                              = 60f;
 
         [Header("Dynamics")]
         public float springFrequency    = 10f;
         public float springDampingRatio = 1f;
         public float fallGravity        = 9.81f;
         public float maxFallSpeed       = 100f;
+
+        [Header("Jump")]
+        public float jumpVelocity       = 5f;
+        public float jumpInitialGravity = 3f;
+        public float jumpGravity        = 9.81f;
+        public float jumpInitialMinTime = 0.2f;
+        public float jumpInitialMaxTime = 0.5f;
         public float coyoteTime         = 0.033f;
     }
 
@@ -89,11 +97,17 @@ namespace A1
                 targetHoverHeight                     = authoring.targetHoverHeight,
                 extraGroundCheckDistanceWhileGrounded = authoring.extraGroundCheckDistanceWhileGrounded,
                 extraGroundCheckDistanceWhileInAir    = authoring.extraGroundCheckDistanceWhileInAir,
+                minSlopeY                             = math.cos(math.radians(authoring.maxSlope)),
                 springFrequency                       = authoring.springFrequency,
                 springDampingRatio                    = authoring.springDampingRatio,
                 fallGravity                           = authoring.fallGravity,
                 maxFallSpeed                          = authoring.maxFallSpeed,
-                coyoteTime                            = authoring.coyoteTime
+                jumpGravity                           = authoring.jumpGravity,
+                jumpInitialGravity                    = authoring.jumpInitialGravity,
+                jumpInitialMaxTime                    = authoring.jumpInitialMaxTime,
+                jumpInitialMinTime                    = authoring.jumpInitialMinTime,
+                jumpVelocity                          = authoring.jumpVelocity,
+                coyoteTime                            = authoring.coyoteTime,
             });
         }
     }

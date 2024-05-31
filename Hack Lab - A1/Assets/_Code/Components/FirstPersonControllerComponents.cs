@@ -9,6 +9,7 @@ namespace A1
     {
         public float2 lookDirectionFromForward;  // Assume z = sqrt(1 - lengthSq)
         public float2 move;
+        public bool   jump;
     }
 
     public struct FirstPersonVerticalAimStats : IComponentData
@@ -43,8 +44,16 @@ namespace A1
         public float targetHoverHeight;
         public float extraGroundCheckDistanceWhileGrounded;
         public float extraGroundCheckDistanceWhileInAir;
+        public float minSlopeY;
+
         public float springFrequency;
         public float springDampingRatio;
+
+        public float jumpVelocity;
+        public float jumpInitialGravity;
+        public float jumpGravity;
+        public float jumpInitialMinTime;
+        public float jumpInitialMaxTime;
         public float fallGravity;
         public float maxFallSpeed;
         public float coyoteTime;
@@ -54,6 +63,7 @@ namespace A1
     {
         public float3 velocity;
         public float  accumulatedCoyoteTime;
+        public float  accumulatedJumpTime;
         public bool   isGrounded;
     }
 }

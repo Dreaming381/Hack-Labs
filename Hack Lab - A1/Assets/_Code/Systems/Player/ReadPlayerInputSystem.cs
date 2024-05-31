@@ -53,11 +53,13 @@ namespace A1
             }
 
             float2 move = actions.Move.ReadValue<UnityEngine.Vector2>();
+            bool   jump = actions.Jump.IsPressed();
 
             var fpda = new FirstPersonDesiredActions
             {
                 lookDirectionFromForward = look,
-                move                     = move
+                move                     = move,
+                jump                     = jump
             };
 
             foreach (var entityActions in SystemAPI.Query<RefRW<FirstPersonDesiredActions> >().WithAll<PlayerTag>())

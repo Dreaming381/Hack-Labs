@@ -3,6 +3,7 @@ using Latios.Psyshock;
 using Latios.Transforms;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -48,20 +49,27 @@ namespace A1
                 var initialGroundCheckDistance = stats.targetHoverHeight + math.select(stats.extraGroundCheckDistanceWhileInAir,
                                                                                        stats.extraGroundCheckDistanceWhileGrounded,
                                                                                        wasPreviouslyGrounded);
-                var initialGroundCheckResult = CheckGround(startingPosition, initialGroundCheckDistance, in stats);
+                var initialGroundCheckResult = CheckGround(startingPosition, initialGroundCheckDistance, in stats, state.accumulatedJumpTime);
 
                 // Todo: Does it feel better to apply rotation now or at the end?
-                ApplyRotation(transform, ref state, in desiredActions, initialGroundCheckResult.groundFound);
-
-                ApplyGravity(initialGroundCheckResult.groundFound, ref state.velocity, in stats);
-                ApplyMoveInput(desiredActions.move, transform.worldRotation, initialGroundCheckResult.groundFound, ref state.velocity, in stats);
+                ApplyRotation(transform, in desiredActions, initialGroundCheckResult.groundFound);
+                var velA = state.velocity;
+                ApplyJump(desiredActions.jump, ref state, in stats);
+                var velB = state.velocity;
+                if (state.accumulatedJumpTime > 0f)
+                    initialGroundCheckResult.groundFound = false;
+                ApplyGravity(initialGroundCheckResult.groundFound, ref state, in stats);
+                var velC = state.velocity;
+                ApplyMoveInput(desiredActions.move, transform.worldRotation, in initialGroundCheckResult, ref state.velocity, in stats);
+                var velD = state.velocity;
                 CollideAndSlide(startingPosition, ref state.velocity, in stats);
+                var velE                    = state.velocity;
                 var collideAndSlidePosition = startingPosition + state.velocity * deltaTime;
 
                 var afterMoveGroundCheckDistance = stats.targetHoverHeight + math.select(stats.extraGroundCheckDistanceWhileInAir,
                                                                                          stats.extraGroundCheckDistanceWhileGrounded,
                                                                                          initialGroundCheckResult.groundFound);
-                var afterMoveGroundCheckResult = CheckGround(collideAndSlidePosition, afterMoveGroundCheckDistance, in stats);
+                var afterMoveGroundCheckResult = CheckGround(collideAndSlidePosition, afterMoveGroundCheckDistance, in stats, state.accumulatedJumpTime);
                 if (afterMoveGroundCheckResult.groundFound)
                 {
                     //if (afterMoveGroundCheckResult.distance < stats.targetHoverHeight)
@@ -70,18 +78,19 @@ namespace A1
                         ApplySpring(ref state.velocity, collideAndSlidePosition, targetY, in stats);
                     }
                 }
+                var velF = state.velocity;
+                if (!math.all(math.isfinite(velF)))
+                    UnityEngine.Debug.Log($"velocity broke: a: {velA}, b: {velB}, c: {velC}, d: {velD}, e: {velE}, f: {velF}");
                 state.isGrounded        = afterMoveGroundCheckResult.groundFound;
                 transform.worldPosition = startingPosition + state.velocity * deltaTime;
             }
 
-            void ApplyRotation(TransformAspect transform, ref FirstPersonControllerState state, in FirstPersonDesiredActions desiredActions, bool grounded)
+            void ApplyRotation(TransformAspect transform, in FirstPersonDesiredActions desiredActions, bool grounded)
             {
                 var deltaX              = desiredActions.lookDirectionFromForward.x;
                 var deltaForward        = new float3(deltaX, 0f, math.sqrt(1f - deltaX * deltaX));
                 var deltaRotation       = quaternion.LookRotation(deltaForward, math.up());
                 transform.localRotation = math.mul(deltaRotation, transform.localRotation);
-                //if (grounded)
-                //    state.velocity = math.rotate(deltaRotation, state.velocity);
             }
 
             struct CheckGroundResult
@@ -91,24 +100,67 @@ namespace A1
                 public bool   groundFound;
             }
 
-            CheckGroundResult CheckGround(float3 start, float checkDistance, in FirstPersonControllerStats stats)
+            unsafe CheckGroundResult CheckGround(float3 start, float checkDistance, in FirstPersonControllerStats stats, float accumulatedJumpTime)
             {
+                if (accumulatedJumpTime > 0f)
+                    return default;
+
                 start.y                 += stats.capsuleRadius + stats.skinWidth;
                 checkDistance           += stats.skinWidth;
                 Collider sphere          = new SphereCollider(float3.zero, stats.capsuleRadius);
                 var      startTransform  = new TransformQvvs(start, quaternion.identity);
                 var      end             = start;
                 end.y                   -= checkDistance;
-                if (Physics.ColliderCast(in sphere, in startTransform, end, in staticEnvironmentCollisionLayer, out var result, out _))
+                if (Physics.ColliderCast(in sphere, in startTransform, end, in staticEnvironmentCollisionLayer, out var result, out var bodyInfo))
                 {
+                    startTransform.position.y -= result.distance;
+                    var accumulatedNormal      = -result.normalOnCaster;
+                    var processor              = new CheckGroundProcessor
+                    {
+                        testSphere              = sphere,
+                        testSphereTransform     = startTransform,
+                        accumulatedNormal       = &accumulatedNormal,
+                        firstHitBodyIndex       = bodyInfo.bodyIndex,
+                        firstHitBodySubcollider = result.subColliderIndexOnTarget,
+                        skinWidth               = stats.skinWidth
+                    };
+                    var aabb  = Physics.AabbFrom(sphere, startTransform);
+                    aabb.min -= stats.skinWidth;
+                    aabb.max += stats.skinWidth;
+                    Physics.FindObjects(aabb, in staticEnvironmentCollisionLayer, processor).RunImmediate();
+                    var finalNormal = math.normalizesafe(accumulatedNormal, math.down());
+
                     return new CheckGroundResult
                     {
                         distance    = result.distance,
-                        normal      = -result.normalOnCaster,
-                        groundFound = true
+                        normal      = finalNormal,
+                        groundFound = finalNormal.y >= stats.minSlopeY
                     };
                 }
                 return default;
+            }
+
+            unsafe struct CheckGroundProcessor : IDistanceBetweenAllProcessor, IFindObjectsProcessor
+            {
+                public Collider      testSphere;
+                public TransformQvvs testSphereTransform;
+                public float3*       accumulatedNormal;
+                public int           firstHitBodySubcollider;
+                public int           firstHitBodyIndex;
+                public float         skinWidth;
+                bool                 checkSubcollider;
+
+                public void Execute(in ColliderDistanceResult result)
+                {
+                    if (!checkSubcollider || result.subColliderIndexB != firstHitBodySubcollider)
+                        *accumulatedNormal -= result.normalA;
+                }
+
+                public void Execute(in FindObjectsResult result)
+                {
+                    checkSubcollider = result.bodyIndex == firstHitBodyIndex;
+                    Physics.DistanceBetweenAll(in testSphere, in testSphereTransform, result.collider, result.transform, skinWidth, ref this);
+                }
             }
 
             void ApplySpring(ref float3 velocity, float3 currentPosition, float targetY, in FirstPersonControllerStats stats)
@@ -127,30 +179,73 @@ namespace A1
                 velocity = simVelocity.linear;
             }
 
-            void ApplyGravity(bool isGrounded, ref float3 velocity, in FirstPersonControllerStats stats)
+            void ApplyJump(bool jump, ref FirstPersonControllerState state, in FirstPersonControllerStats stats)
+            {
+                if (state.isGrounded)
+                    state.accumulatedCoyoteTime  = 0f;
+                state.accumulatedCoyoteTime     += deltaTime;
+                if (jump && state.accumulatedCoyoteTime <= stats.coyoteTime)
+                {
+                    state.velocity.y          += stats.jumpVelocity;
+                    state.accumulatedJumpTime  = math.EPSILON;
+                }
+                else if (state.accumulatedJumpTime > 0f)
+                    state.accumulatedJumpTime += deltaTime;
+                if (state.accumulatedJumpTime > stats.jumpInitialMaxTime || (!jump && state.accumulatedJumpTime >= stats.jumpInitialMinTime))
+                    state.accumulatedJumpTime  = 0f;
+                state.isGrounded              &= state.accumulatedJumpTime > 0f;
+            }
+
+            void ApplyGravity(bool isGrounded, ref FirstPersonControllerState state, in FirstPersonControllerStats stats)
             {
                 if (!isGrounded)
                 {
-                    velocity.y -= stats.fallGravity * deltaTime;
+                    var gravity = stats.fallGravity;
+                    if (state.accumulatedJumpTime >= stats.jumpInitialMaxTime)
+                        gravity = stats.jumpGravity;
+                    else if (state.accumulatedJumpTime > 0f)
+                        gravity       = stats.jumpInitialGravity;
+                    state.velocity.y -= gravity * deltaTime;
                 }
-                velocity.y = math.max(velocity.y, -stats.maxFallSpeed);
+                state.velocity.y = math.max(state.velocity.y, -stats.maxFallSpeed);
             }
 
-            void ApplyMoveInput(float2 move, quaternion rotation, bool isGrounded, ref float3 velocity, in FirstPersonControllerStats stats)
+            void ApplyMoveInput(float2 move, quaternion rotation, in CheckGroundResult checkGroundResult, ref float3 velocity, in FirstPersonControllerStats stats)
             {
-                var moveStats       = isGrounded ? stats.walkStats : stats.airStats;
-                var forwardVelocity = math.dot(math.forward(rotation), velocity);
-                var rightVelocity   = math.dot(math.rotate(rotation, math.right()), velocity);
-                var newVelocities   = Physics.StepVelocityWithInput(move.yx,
-                                                                    new float2(forwardVelocity, rightVelocity),
-                                                                    new float2(moveStats.forwardAcceleration, moveStats.strafeAcceleration),
-                                                                    new float2(moveStats.forwardDeceleration, moveStats.strafeDeceleration),
-                                                                    new float2(moveStats.forwardTopSpeed, moveStats.strafeTopSpeed),
-                                                                    new float2(moveStats.reverseAcceleration, moveStats.strafeAcceleration),
-                                                                    new float2(moveStats.reverseDeceleration, moveStats.strafeDeceleration),
-                                                                    new float2(moveStats.reverseTopSpeed, moveStats.strafeTopSpeed),
-                                                                    deltaTime);
-                velocity.zx = math.rotate(rotation, newVelocities.yx.x0y()).zx;
+                if (!checkGroundResult.groundFound)
+                {
+                    var forwardVelocity = math.dot(math.forward(rotation), velocity);
+                    var rightVelocity   = math.dot(math.rotate(rotation, math.right()), velocity);
+                    var newVelocities   = Physics.StepVelocityWithInput(move.yx,
+                                                                        new float2(forwardVelocity, rightVelocity),
+                                                                        new float2(stats.airStats.forwardAcceleration, stats.airStats.strafeAcceleration),
+                                                                        new float2(stats.airStats.forwardDeceleration, stats.airStats.strafeDeceleration),
+                                                                        new float2(stats.airStats.forwardTopSpeed,     stats.airStats.strafeTopSpeed),
+                                                                        new float2(stats.airStats.reverseAcceleration, stats.airStats.strafeAcceleration),
+                                                                        new float2(stats.airStats.reverseDeceleration, stats.airStats.strafeDeceleration),
+                                                                        new float2(stats.airStats.reverseTopSpeed,     stats.airStats.strafeTopSpeed),
+                                                                        deltaTime);
+                    velocity.zx = math.rotate(rotation, newVelocities.yx.x0y()).zx;
+                }
+                else
+                {
+                    var forward                  = math.mul(quaternion.LookRotation(-checkGroundResult.normal, math.forward(rotation)), math.up());
+                    var right                    = math.mul(quaternion.LookRotation(-checkGroundResult.normal, math.rotate(rotation, math.right())), math.up());
+                    var slopeCompensatedRotation = quaternion.LookRotation(forward, math.cross(forward, right));
+                    var slopeHeadingVelocity     = math.InverseRotateFast(slopeCompensatedRotation, velocity);
+                    if (math.length(velocity.xz) < math.EPSILON)
+                        slopeHeadingVelocity.xz = 0f; // This prevents getting stuck when the spring is driving the velocity on a slope.
+                    slopeHeadingVelocity.zx     = Physics.StepVelocityWithInput(move.yx,
+                                                                                slopeHeadingVelocity.zx,
+                                                                                new float2(stats.walkStats.forwardAcceleration, stats.walkStats.strafeAcceleration),
+                                                                                new float2(stats.walkStats.forwardDeceleration, stats.walkStats.strafeDeceleration),
+                                                                                new float2(stats.walkStats.forwardTopSpeed,     stats.walkStats.strafeTopSpeed),
+                                                                                new float2(stats.walkStats.reverseAcceleration, stats.walkStats.strafeAcceleration),
+                                                                                new float2(stats.walkStats.reverseDeceleration, stats.walkStats.strafeDeceleration),
+                                                                                new float2(stats.walkStats.reverseTopSpeed,     stats.walkStats.strafeTopSpeed),
+                                                                                deltaTime);
+                    velocity = math.rotate(slopeCompensatedRotation, slopeHeadingVelocity);
+                }
             }
 
             void CollideAndSlide(float3 startPosition, ref float3 velocity, in FirstPersonControllerStats stats)
@@ -165,7 +260,7 @@ namespace A1
 
                 for (int iteration = 0; iteration < 32; iteration++)
                 {
-                    if (distanceRemaining < 0f)
+                    if (distanceRemaining < math.EPSILON)
                         break;
                     var end = currentTransform.position + moveDirection * distanceRemaining;
                     if (Physics.ColliderCast(in collider, in currentTransform, end, in staticEnvironmentCollisionLayer, out var hitInfo, out _))
