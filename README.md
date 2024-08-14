@@ -76,3 +76,14 @@ existing facilities.
     introduced to the public
 -   E – Extras Lab, used for extra feature snippets to feed to the raccoons, not
     suitable for all productions and with no maintenance guarantees
+
+## Lab Brief Summaries
+
+### Lab-A1
+
+1st-person character controller on messy level geometry.
+
+### Lab-C1
+
+Revival of the Kinemation-Skinning-Prototype project, exploring EWBIK full-body
+IK.
