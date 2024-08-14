@@ -257,7 +257,7 @@ namespace Latios
 
             public bool MoveNext()
             {
-                while (MoveNext())
+                while (m_enumerator.MoveNext())
                 {
                     if (m_enumerator.Current.isOccupied)
                         return true;
@@ -378,6 +378,7 @@ namespace Latios
                     var bucket                  = GetBucket(oldBuckets[i].key);
                     bufferPtr[bucket]           = oldBuckets[i];
                     bufferPtr[bucket].nextIndex = 0;
+                    oldBuckets[i] = default;
                 }
             }
 
@@ -398,6 +399,12 @@ namespace Latios
                     oldBuckets[overflowCount].nextIndex = 0;
                     overflowCount++;
                 }
+                else
+                {
+                    bufferPtr[bucket] = oldOverflow[i];
+                    bufferPtr[bucket].nextIndex = 0;
+                }
+                oldOverflow[i] = default;
             }
 
             // Clean up
@@ -427,15 +434,16 @@ namespace Latios
                         return false;
                     }
 
-                    if (candidate.nextIndex == 0 || bucket >= m_buffer.Length - 1)
+                    if (candidate.nextIndex == 0 || candidate.nextIndex >= m_buffer.Length - 1)
                     {
                         ref var last = ref m_buffer.ElementAt(m_buffer.Length - 1);
                         if (!last.isOccupied)
                         {
                             // Last is likely padding to ensure the capacity can be computed correctly.
-                            last.isOccupied = true;
-                            last.key        = key;
-                            last.value      = value;
+                            last.isOccupied         = true;
+                            last.key                = key;
+                            last.value              = value;
+                            candidate.nextIndex     = m_buffer.Length - 1;
                             IncrementCount();
                             return true;
                         }
@@ -448,7 +456,7 @@ namespace Latios
                         }
                         last.nextIndex              = 0;
                         candidate.nextIndex         = m_buffer.Length;
-                        m_buffer.Add(new Pair { key = key, value = value, meta = (uint)m_count | 0x10000000 });
+                        m_buffer.Add(new Pair { key = key, value = value, meta = (uint)m_count | 0x80000000 });
                         IncrementCount();
                         return true;
                     }

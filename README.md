@@ -74,3 +74,5 @@ existing facilities.
     specific use case or feature
 -   D – Demo Lab, used for constructing showcase works that will eventually be
     introduced to the public
+-   E – Extras Lab, used for extra feature snippets to feed to the raccoons, not
+    suitable for all productions and with no maintenance guarantees
