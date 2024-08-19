@@ -16,7 +16,7 @@ namespace Latios.Kinemation
             {
                 if (instance == null)
                 {
-                    instance = FindObjectOfType<HybridSkinningToggle>();
+                    instance = FindFirstObjectByType<HybridSkinningToggle>();
                     if (instance == null)
                         return false;
                 }

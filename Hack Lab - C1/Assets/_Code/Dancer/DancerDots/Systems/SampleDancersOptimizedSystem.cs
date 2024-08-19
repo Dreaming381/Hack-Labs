@@ -37,11 +37,15 @@ namespace Dragons
 
             if (HybridSkinningToggle.EnableBlending)
             {
-                new BlendedBonesJob { srcTransforms = srcTransforms, dt = dt }.ScheduleParallel();
+                var query = QueryBuilder().WithAspect<OptimizedSkeletonAspect>().WithAllRW<QuaternionCacheElement>().WithAll<DancerDots, DancerReferenceGroupMember>().Build();
+                query.SetSharedComponentFilter(memberScd);
+                new BlendedBonesJob { srcTransforms = srcTransforms, dt = dt }.ScheduleParallel(query);
             }
             else
             {
-                new CopyBonesJob { srcTransforms = srcTransforms, dt = dt }.ScheduleParallel();
+                var query = QueryBuilder().WithAspect<OptimizedSkeletonAspect>().WithAll<DancerDots, DancerReferenceGroupMember>().Build();
+                query.SetSharedComponentFilter(memberScd);
+                new CopyBonesJob { srcTransforms = srcTransforms, dt = dt }.ScheduleParallel(query);
             }
         }
 
@@ -109,6 +113,7 @@ namespace Dragons
 
                     bones[i] = new TransformQvvs(t, r);
                 }
+                SetBoneWeightsToOne(bones);
                 skeleton.EndSamplingAndSync();
             }
         }
@@ -119,7 +124,7 @@ namespace Dragons
             [ReadOnly] public NativeArray<RigidTransform> srcTransforms;
             public float                                  dt;
 
-            public void Execute(OptimizedSkeletonAspect skeleton, ref DynamicBuffer<QuaternionCacheElement> cacheBuffer, in DancerDots dd)
+            public void Execute(OptimizedSkeletonAspect skeleton, in DancerDots dd)
             {
                 var bones     = skeleton.rawLocalTransformsRW;
                 var boneCount = bones.Length;
@@ -130,7 +135,18 @@ namespace Dragons
                     var t    = srcTransforms[ia];
                     bones[i] = new TransformQvvs(t);
                 }
+                SetBoneWeightsToOne(bones);
                 skeleton.EndSamplingAndSync();
+            }
+        }
+
+        static void SetBoneWeightsToOne(NativeArray<TransformQvvs> bones)
+        {
+            for (int i = 0; i < bones.Length; i++)
+            {
+                var bone        = bones[i];
+                bone.worldIndex = math.asint(1f);
+                bones[i]        = bone;
             }
         }
     }

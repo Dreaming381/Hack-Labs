@@ -5,6 +5,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 100002, guid: 340426666c54d714881b17f349e08bc5, type: 3}
@@ -56,10 +57,17 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 13700000, guid: 340426666c54d714881b17f349e08bc5, type: 3}
-      propertyPath: m_Materials.Array.data[0]
+      propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 5549ab32bc2b57e4a95393e2dec41674, type: 2}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 100002, guid: 340426666c54d714881b17f349e08bc5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5831655860642772153}
   m_SourcePrefab: {fileID: 100100000, guid: 340426666c54d714881b17f349e08bc5, type: 3}
 --- !u!1 &7229573673842287066 stripped
 GameObject:
@@ -67,31 +75,6 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 7229573673842321272}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &7229573673842458092 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 400020, guid: 340426666c54d714881b17f349e08bc5,
-    type: 3}
-  m_PrefabInstance: {fileID: 7229573673842321272}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &7229573673842458064 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 400040, guid: 340426666c54d714881b17f349e08bc5,
-    type: 3}
-  m_PrefabInstance: {fileID: 7229573673842321272}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1167427608
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7229573673842287066}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ConversionMode: 0
 --- !u!114 &5831655860642772153
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -107,3 +90,15 @@ MonoBehaviour:
   leftFoot: {fileID: 7229573673842458092}
   rightFoot: {fileID: 7229573673842458064}
   offset: 0.02
+--- !u!4 &7229573673842458064 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 400040, guid: 340426666c54d714881b17f349e08bc5,
+    type: 3}
+  m_PrefabInstance: {fileID: 7229573673842321272}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &7229573673842458092 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 400020, guid: 340426666c54d714881b17f349e08bc5,
+    type: 3}
+  m_PrefabInstance: {fileID: 7229573673842321272}
+  m_PrefabAsset: {fileID: 0}

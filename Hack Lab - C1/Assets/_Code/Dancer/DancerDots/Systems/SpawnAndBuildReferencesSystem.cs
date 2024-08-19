@@ -21,17 +21,16 @@ namespace Dragons
     public partial class SpawnAndBuildReferencesSystem : SubSystem
     {
         struct ColorInitializedTag : IComponentData { }
-        struct DancerInitializedTag : IComponentData { }
 
         EntityQuery m_spawnerQuery;
         EntityQuery m_dancerColorQuery;
-        EntityQuery m_dancerChildQuery;
 
         protected override void OnCreate()
         {
             base.OnCreate();
             CheckedStateRef.InitSystemRng("SpawnAndBuildReferencesSystem");
-            m_spawnerQuery = Fluent.With<DancerReferenceGroupSourcePrefab, SpawnerDots>(true).Build();
+            m_spawnerQuery     = Fluent.With<DancerReferenceGroupSourcePrefab, SpawnerDots>(true).Build();
+            m_dancerColorQuery = Fluent.With<URPMaterialPropertyBaseColor>().Without<ColorInitializedTag>().Build();
         }
 
         protected override void OnUpdate()
@@ -104,7 +103,6 @@ namespace Dragons
             CompleteDependency();
             EntityManager.AddComponent<ColorInitializedTag>(m_dancerColorQuery);
             EntityManager.RemoveComponent<SpawnerDots>(m_spawnerQuery);
-            EntityManager.AddComponent<DancerInitializedTag>(m_dancerChildQuery);
         }
 
         List<Transform> m_transformsCache = new List<Transform>();
