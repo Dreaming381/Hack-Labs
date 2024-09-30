@@ -79,6 +79,10 @@ using Unity.Transforms;
 
 using MaterialPropertyType = Unity.Rendering.MaterialPropertyType;
 
+#if !UNITY_BURST_EXPERIMENTAL_ATOMIC_INTRINSICS
+#error Latios Framework requires UNITY_BURST_EXPERIMENTAL_ATOMIC_INTRINSICS to be defined in your scripting define symbols.
+#endif
+
 namespace Latios.Kinemation.Systems
 {
     [UpdateInGroup(typeof(PresentationSystemGroup))]
@@ -199,8 +203,15 @@ namespace Latios.Kinemation.Systems
         kMaxBytesPerBatchRawBuffer;
 
         KinemationCullingSuperSystem m_cullingSuperSystem;
-        int                          m_cullPassIndexThisFrame;
-        NativeList<JobHandle>        m_cullingCallbackFinalJobHandles;  // Used for safe destruction of threaded allocators.
+#if UNITY_6000_0_OR_NEWER
+        KinemationCullingDispatchSuperSystem m_cullingDispatchSuperSystem;
+#endif
+        int m_cullPassIndexThisFrame;
+        int m_dispatchPassIndexThisFrame;
+#pragma warning disable CS0414  // Variable assigned but unused in 2022 LTS
+        int m_cullPassIndexForLastDispatch;
+#pragma warning restore CS0414
+        NativeList<JobHandle> m_cullingCallbackFinalJobHandles;  // Used for safe destruction of threaded allocators.
 
         ComponentTypeCache.BurstCompatibleTypeArray m_burstCompatibleTypeArray;
 
@@ -227,7 +238,11 @@ namespace Latios.Kinemation.Systems
             }
 
             m_cullingSuperSystem = World.GetOrCreateSystemManaged<KinemationCullingSuperSystem>();
+#if UNITY_6000_0_OR_NEWER
+            m_cullingDispatchSuperSystem = World.GetOrCreateSystemManaged<KinemationCullingDispatchSuperSystem>();
+#endif
             worldBlackboardEntity.AddComponent<CullingContext>();
+            worldBlackboardEntity.AddComponent<DispatchContext>();
             worldBlackboardEntity.AddBuffer<CullingPlane>();
             worldBlackboardEntity.AddBuffer<CullingSplitElement>();
             worldBlackboardEntity.AddOrSetCollectionComponentAndDisposeOld(new PackedCullingSplits { packedSplits = new NativeReference<CullingSplits>(Allocator.Persistent) });
@@ -403,13 +418,16 @@ namespace Latios.Kinemation.Systems
             }
 #endif
             InitializeMaterialProperties();
-            var uploadMaterialPropertiesSystem = World.GetExistingSystemManaged<UploadMaterialPropertiesSystem>();
-            m_ComponentTypeCache.FetchTypeHandles(uploadMaterialPropertiesSystem);
-            uploadMaterialPropertiesSystem.m_burstCompatibleTypeArray = m_ComponentTypeCache.ToBurstCompatible(Allocator.Persistent);
-            m_ComponentTypeCache.FetchTypeHandles(this);
+            var     uploadMaterialPropertiesSystem      = World.Unmanaged.GetExistingUnmanagedSystem<UploadMaterialPropertiesSystem>();
+            ref var uploadMaterialPropertiesSystemState = ref World.Unmanaged.ResolveSystemStateRef(uploadMaterialPropertiesSystem);
+            m_ComponentTypeCache.FetchTypeHandles(ref uploadMaterialPropertiesSystemState);
+            ref var uploadMaterialPropertiesSystemMemory =
+                ref World.Unmanaged.GetUnsafeSystemRef<UploadMaterialPropertiesSystem>(uploadMaterialPropertiesSystem);
+            uploadMaterialPropertiesSystemMemory.m_burstCompatibleTypeArray = m_ComponentTypeCache.ToBurstCompatible(Allocator.Persistent);
+            m_ComponentTypeCache.FetchTypeHandles(ref CheckedStateRef);
             m_burstCompatibleTypeArray = m_ComponentTypeCache.ToBurstCompatible(Allocator.Persistent);
             // This assumes uploadMaterialPropertiesSystem is already fully created from when the KinemationCullingSuperSystem was created.
-            m_GPUPersistentInstanceBufferHandle = uploadMaterialPropertiesSystem.m_GPUPersistentInstanceBufferHandle;
+            m_GPUPersistentInstanceBufferHandle = uploadMaterialPropertiesSystemMemory.m_GPUPersistentInstanceBufferHandle;
 
             // UsedTypes values are the ComponentType values while the keys are the same
             // except with the bit flags in the high bits masked off.
@@ -457,7 +475,9 @@ namespace Latios.Kinemation.Systems
             worldBlackboardEntity.UpdateJobDependency<BrgCullingContext>(default, false);
 
             m_ThreadLocalAllocators.Rewind();
-            m_cullPassIndexThisFrame = 0;
+            m_cullPassIndexThisFrame       = 0;
+            m_dispatchPassIndexThisFrame   = 0;
+            m_cullPassIndexForLastDispatch = -1;
 
             m_LastSystemVersionAtLastUpdate   = LastSystemVersion;
             m_globalSystemVersionAtLastUpdate = GlobalSystemVersion;
@@ -512,7 +532,9 @@ namespace Latios.Kinemation.Systems
         {
             using var callbackMarker = m_latiosPerformCullingMarker.Auto();
 
+#if UNITY_6000_0_OR_NEWER
             cullingOutput.customCullingResult[0] = (IntPtr)m_cullPassIndexThisFrame;
+#endif
             //UnityEngine.Debug.Log($"OnPerformCulling pass {m_cullPassIndexThisFrame} of type {batchCullingContext.viewType}");
 
             var setup = new BurstCullingSetup
@@ -521,6 +543,7 @@ namespace Latios.Kinemation.Systems
                 entityManager                   = EntityManager,
                 worldBlackboardEntity           = worldBlackboardEntity,
                 cullPassIndexThisFrame          = m_cullPassIndexThisFrame,
+                dispatchPassIndexThisFrame      = m_dispatchPassIndexThisFrame,
                 globalSystemVersionAtLastUpdate = m_globalSystemVersionAtLastUpdate,
                 lastSystemVersionAtLastUpdate   = m_LastSystemVersionAtLastUpdate,
                 batchCullingContext             = batchCullingContext,
@@ -550,14 +573,26 @@ namespace Latios.Kinemation.Systems
             DoBurstCullingFinalize(&finalize);
 
             m_cullPassIndexThisFrame++;
+#if !UNITY_6000_0_OR_NEWER
+            m_dispatchPassIndexThisFrame++;
+#endif
 
             return finalize.finalHandle;
         }
 
+#if UNITY_6000_0_OR_NEWER
         private unsafe void OnFinishedCulling(IntPtr customCullingResult)
         {
             //UnityEngine.Debug.Log($"OnFinishedCulling pass {(int)customCullingResult}");
+
+            if (m_cullPassIndexThisFrame == m_cullPassIndexForLastDispatch)
+                return;
+
+            m_cullingDispatchSuperSystem.Update();
+            m_cullPassIndexForLastDispatch = m_cullPassIndexThisFrame;
+            m_dispatchPassIndexThisFrame++;
         }
+#endif
         #endregion
 
         #region Burst Culling
@@ -573,6 +608,7 @@ namespace Latios.Kinemation.Systems
             public EntityManager                                   entityManager;
             public BlackboardEntity                                worldBlackboardEntity;
             public int                                             cullPassIndexThisFrame;
+            public int                                             dispatchPassIndexThisFrame;
             public uint                                            globalSystemVersionAtLastUpdate;
             public uint                                            lastSystemVersionAtLastUpdate;
             public BatchCullingContext                             batchCullingContext;
@@ -605,19 +641,23 @@ namespace Latios.Kinemation.Systems
 
                 worldBlackboardEntity.SetComponentData(new CullingContext
                 {
-                    cullIndexThisFrame                          = cullPassIndexThisFrame,
-                    cullingFlags                                = batchCullingContext.cullingFlags,
+                    cullIndexThisFrame  = cullPassIndexThisFrame,
+                    cullingFlags        = batchCullingContext.cullingFlags,
+                    cullingLayerMask    = batchCullingContext.cullingLayerMask,
+                    localToWorldMatrix  = batchCullingContext.localToWorldMatrix,
+                    lodParameters       = batchCullingContext.lodParameters,
+                    projectionType      = batchCullingContext.projectionType,
+                    receiverPlaneCount  = batchCullingContext.receiverPlaneCount,
+                    receiverPlaneOffset = batchCullingContext.receiverPlaneOffset,
+                    sceneCullingMask    = batchCullingContext.sceneCullingMask,
+                    viewID              = batchCullingContext.viewID,
+                    viewType            = batchCullingContext.viewType,
+                });
+                worldBlackboardEntity.SetComponentData(new DispatchContext
+                {
                     globalSystemVersionOfLatiosEntitiesGraphics = globalSystemVersionAtLastUpdate,
                     lastSystemVersionOfLatiosEntitiesGraphics   = lastSystemVersionAtLastUpdate,
-                    cullingLayerMask                            = batchCullingContext.cullingLayerMask,
-                    localToWorldMatrix                          = batchCullingContext.localToWorldMatrix,
-                    lodParameters                               = batchCullingContext.lodParameters,
-                    projectionType                              = batchCullingContext.projectionType,
-                    receiverPlaneCount                          = batchCullingContext.receiverPlaneCount,
-                    receiverPlaneOffset                         = batchCullingContext.receiverPlaneOffset,
-                    sceneCullingMask                            = batchCullingContext.sceneCullingMask,
-                    viewID                                      = batchCullingContext.viewID,
-                    viewType                                    = batchCullingContext.viewType
+                    dispatchIndexThisFrame                      = dispatchPassIndexThisFrame
                 });
 
                 var cullingPlanesBuffer = worldBlackboardEntity.GetBuffer<CullingPlane>(false);
@@ -878,6 +918,8 @@ namespace Latios.Kinemation.Systems
 
         private void Dispose()
         {
+            JobHandle.CompleteAll(m_cullingCallbackFinalJobHandles.AsArray());
+
             if (ErrorShaderEnabled)
                 Material.DestroyImmediate(m_ErrorMaterial);
 
@@ -1647,7 +1689,8 @@ namespace Latios.Kinemation.Systems
                     Debug.LogError(
                         "Entities Graphics: Current loaded scenes need more than 1GiB of persistent GPU memory. This is more than some GPU backends can allocate. Try to reduce amount of loaded data.");
 
-                var uploadSystem = World.GetExistingSystemManaged<UploadMaterialPropertiesSystem>();
+                ref var uploadSystem = ref World.Unmanaged.GetUnsafeSystemRef<UploadMaterialPropertiesSystem>(
+                    World.Unmanaged.GetExistingUnmanagedSystem<UploadMaterialPropertiesSystem>());
                 if (uploadSystem.SetBufferSize(m_PersistentInstanceDataSize, out var newHandle))
                 {
                     m_GPUPersistentInstanceBufferHandle = newHandle;
