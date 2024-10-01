@@ -9,7 +9,7 @@
     }
   ],
   "dependencies": {
-    "com.latios.latiosframework": "file:B:/Unity Projects/Latios Framework Stuff/Hack Labs/com.latios.latiosframework",
+    "com.latios.latiosframework": "file:../../com.latios.latiosframework",
     "com.unity.ai.navigation": "2.0.0",
     "com.unity.ide.visualstudio": "2.0.22",
     "com.unity.recorder": "5.1.1",

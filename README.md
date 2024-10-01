@@ -87,3 +87,7 @@ existing facilities.
 
 Revival of the Kinemation-Skinning-Prototype project, exploring EWBIK full-body
 IK.
+
+### Lab-C2
+
+Conversion of Unity’s Particle Pack to native ECS with Mimic.Shuriken.
