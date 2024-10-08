@@ -352,7 +352,7 @@ namespace Latios.Kinemation.Systems
 
             var skinCopier = new SkinCopier
             {
-                deformClassificationMap    = latiosWorld.worldBlackboardEntity.GetCollectionComponent<DeformClassificationMap>().deformClassificationMap,
+                deformClassificationMap    = latiosWorld.worldBlackboardEntity.GetCollectionComponent<DeformClassificationMap>(true).deformClassificationMap,
                 materialMaskHandle         = GetComponentTypeHandle<ChunkMaterialPropertyDirtyMask>(false),
                 materialPropertyTypeLookup = GetBufferLookup<MaterialPropertyComponentType>(true),
                 worldBlackboardEntity      = latiosWorld.worldBlackboardEntity,

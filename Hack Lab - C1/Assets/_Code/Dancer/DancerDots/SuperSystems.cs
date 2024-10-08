@@ -27,6 +27,7 @@ namespace Dragons
     {
         protected override void CreateSystems()
         {
+            GetOrCreateAndAddUnmanagedSystem<PoleTest>();
             GetOrCreateAndAddManagedSystem<SampleDancersOptimizedSystem>();
         }
     }
