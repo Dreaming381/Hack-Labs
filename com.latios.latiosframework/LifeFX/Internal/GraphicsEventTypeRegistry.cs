@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;  // Preserve for builds
 using Latios.Kinemation;
 using Unity.Burst;
 using Unity.Collections;
@@ -49,7 +50,36 @@ namespace Latios.LifeFX
 #if UNITY_EDITOR
             var eventSOs = UnityEditor.TypeCache.GetTypesDerivedFrom<GraphicsEventTunnelBase>();
 #else
+            var eventSOs = new List<Type>();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (!BootstrapTools.IsAssemblyReferencingSubstring(assembly, "LifeFX"))
+                    continue;
 
+                var targetType = typeof(GraphicsEventTunnelBase);
+                try
+                {
+                    var assemblyTypes = assembly.GetTypes();
+                    foreach (var t in assemblyTypes)
+                    {
+                        if (t == targetType)
+                            continue;
+
+                        if (targetType.IsAssignableFrom(t))
+                            eventSOs.Add(t);
+                    }
+                }
+                catch (ReflectionTypeLoadException e)
+                {
+                    foreach (var t in e.Types)
+                    {
+                        if (t != null && t != targetType && targetType.IsAssignableFrom(t))
+                            eventSOs.Add(t);
+                    }
+
+                    UnityEngine.Debug.LogWarning($"LifeFX GraphicsEventTypeRegistry.cs failed loading assembly: {(assembly.IsDynamic ? assembly.ToString() : assembly.Location)}");
+                }
+            }
 #endif
             var eventTypesAlreadyFound = new HashSet<Type>();
             var sharedKeyType          = typeof(SharedKey);

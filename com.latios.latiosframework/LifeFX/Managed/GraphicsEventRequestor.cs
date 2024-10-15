@@ -27,6 +27,8 @@ namespace Latios.LifeFX
                 eventTypeIndex = tunnel.GetEventIndex(),
             });
         }
+
+        internal void Publish(GraphicsBuffer graphicsBuffer, int startIndex, int count) => OnGraphicsEventPublished(graphicsBuffer, startIndex, count);
     }
 }
 
