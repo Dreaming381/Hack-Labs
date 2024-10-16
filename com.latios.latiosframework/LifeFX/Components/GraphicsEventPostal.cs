@@ -41,6 +41,22 @@ namespace Latios.LifeFX
 
         internal NativeArray<BlocklistPair> blocklistPairArray;
         [NativeSetThreadIndex] internal int threadIndex;
+
+        internal GraphicsEventPostal(AllocatorManager.AllocatorHandle allocator)
+        {
+            var typeCount      = GraphicsEventTypeRegistry.s_eventMetadataList.Data.Length;
+            blocklistPairArray = CollectionHelper.CreateNativeArray<BlocklistPair>(typeCount, allocator, NativeArrayOptions.UninitializedMemory);
+            for (int i = 0; i < blocklistPairArray.Length; i++)
+            {
+                var eventSize         = GraphicsEventTypeRegistry.s_eventMetadataList.Data[i].size;
+                blocklistPairArray[i] = new BlocklistPair
+                {
+                    tunnelTargets = new UnsafeParallelBlockList(UnsafeUtility.SizeOf<UnityObjectRef<GraphicsEventTunnelBase> >(), 1024, allocator),
+                    events        = new UnsafeParallelBlockList(eventSize, 1024, allocator)
+                };
+            }
+            threadIndex = 0;
+        }
     }
 
     // Wanted to check to ensure Burst could resolve managed inheritance type constraints in generics.
