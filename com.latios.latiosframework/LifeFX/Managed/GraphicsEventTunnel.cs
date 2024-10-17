@@ -15,6 +15,7 @@ namespace Latios.LifeFX
 
         internal sealed override int GetEventIndex()
         {
+            GraphicsEventTypeRegistry.Init();
             return GraphicsEventTypeRegistry.TypeToIndex<T>.typeToIndex;
         }
     }

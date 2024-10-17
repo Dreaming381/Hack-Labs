@@ -10,9 +10,9 @@ namespace Latios.LifeFX
     [InternalBufferCapacity(4)]
     internal struct GraphicsEventTunnelDestination : IBufferElementData, IEquatable<GraphicsEventTunnelDestination>
     {
-        public UnityObjectRef<GraphicsEventTunnelBase> tunnel;
-        public UnityObjectRef<GraphicsEventRequestor>  requestor;
-        public int                                     eventTypeIndex;
+        public UnityObjectRef<GraphicsEventTunnelBase>     tunnel;
+        public UnityObjectRef<GraphicsEventBufferReceptor> requestor;
+        public int                                         eventTypeIndex;
 
         public bool Equals(GraphicsEventTunnelDestination other)
         {
