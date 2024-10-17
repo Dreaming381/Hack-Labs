@@ -198,6 +198,7 @@ namespace Latios.LifeFX.Systems
                     {
                         UnityEngine.Assertions.Assert.AreEqual(typeIndex, written.destinations[destinationIndex].eventTypeIndex);
                         DispatchManaged(written.destinations[destinationIndex].requestor, buffer, start, count);
+                        destinationIndex++;
                     }
                 }
             }
