@@ -143,7 +143,7 @@ namespace Latios.LifeFX.Systems
                 else
                 {
                     var meta           = metas[i];
-                    var gb             = collected.broker.GetUploadBuffer(meta.brokerId, (uint)count);
+                    var gb             = collected.broker.GetUploadBuffer(meta.brokerId, (uint)math.max(count, 16));
                     graphicsBuffers[i] = gb;
                     var mapped         = gb.LockBufferForWrite<byte>(0, count * meta.size);
                     buffers[i]         = new UnsafeList<byte>((byte*)mapped.GetUnsafePtr(), mapped.Length);
@@ -177,10 +177,12 @@ namespace Latios.LifeFX.Systems
             ref var metas = ref GraphicsEventTypeRegistry.s_eventMetadataList.Data;
             for (int typeIndex = 0; typeIndex < written.eventCountByTypeIndex.Length; typeIndex++)
             {
-                written.graphicsBuffers[typeIndex].UnlockBufferAfterWrite<byte>(written.eventCountByTypeIndex[typeIndex] * metas[typeIndex].size);
+                if (written.eventCountByTypeIndex[typeIndex] > 0)
+                    written.graphicsBuffers[typeIndex].UnlockBufferAfterWrite<byte>(written.eventCountByTypeIndex[typeIndex] * metas[typeIndex].size);
             }
 
             m_allocator.Allocator.Rewind();
+            latiosWorld.worldBlackboardEntity.SetCollectionComponentAndDisposeOld(new GraphicsEventPostal(m_allocator.Allocator.Handle));
 
             int destinationIndex = 0;
             for (int typeIndex = 0; typeIndex < written.eventCountByTypeIndex.Length; typeIndex++)
@@ -194,7 +196,7 @@ namespace Latios.LifeFX.Systems
                     int start    = eventRange.x;
                     int count    = eventRange.y;
                     var previous = written.destinations[destinationIndex].tunnel;
-                    while (written.destinations[destinationIndex].tunnel == previous)
+                    while (destinationIndex < written.destinations.Length && written.destinations[destinationIndex].tunnel == previous)
                     {
                         UnityEngine.Assertions.Assert.AreEqual(typeIndex, written.destinations[destinationIndex].eventTypeIndex);
                         DispatchManaged(written.destinations[destinationIndex].requestor, buffer, start, count);
@@ -304,7 +306,7 @@ namespace Latios.LifeFX.Systems
 
             public void Execute()
             {
-                var uniqueDestinations = new NativeHashSet<GraphicsEventTunnelDestination>();
+                var uniqueDestinations = new NativeHashSet<GraphicsEventTunnelDestination>(chunks.Length * 32, Allocator.Temp);
                 foreach (var chunk in chunks)
                 {
                     var destinationAccessor = chunk.GetBufferAccessor(ref destinationHandle);

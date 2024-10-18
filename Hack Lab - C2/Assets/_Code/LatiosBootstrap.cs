@@ -55,8 +55,10 @@ public class LatiosBootstrap : ICustomBootstrap
         Latios.Kinemation.KinemationBootstrap.InstallKinemation(world);
         Latios.Calligraphics.CalligraphicsBootstrap.InstallCalligraphics(world);
         Latios.Calligraphics.CalligraphicsBootstrap.InstallCalligraphicsAnimations(world);
+        Latios.LifeFX.LifeFXBootstrap.InstallLifeFX(world);
 
         BootstrapTools.InjectRootSuperSystems(systems, world, world.simulationSystemGroup);
+        BootstrapTools.InjectSystem(TypeManager.GetSystemTypeIndex<PositionEventSpawnerSystem>(), world, world.simulationSystemGroup);
 
         world.initializationSystemGroup.SortSystems();
         world.simulationSystemGroup.SortSystems();

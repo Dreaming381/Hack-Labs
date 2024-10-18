@@ -16620,6 +16620,7 @@ GameObject:
   - component: {fileID: 573238738}
   - component: {fileID: 573238737}
   - component: {fileID: 573238736}
+  - component: {fileID: 573238739}
   m_Layer: 0
   m_Name: Visual Effect
   m_TagString: Untagged
@@ -16723,6 +16724,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &573238739
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 573238735}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27a9b3f81d41dc745911804fc69c6bbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tunnel: {fileID: 0}
+  OnGraphicsEventPublishedSerialized:
+    m_PersistentCalls:
+      m_Calls: []
+  buffer: 
+  start: 
+  count: 
 --- !u!1 &577034284
 GameObject:
   m_ObjectHideFlags: 0
