@@ -98,7 +98,7 @@ namespace Latios.Kinemation.Authoring.Systems
             var meshList      = new NativeList<UnityObjectRef<Mesh> >(WorldUpdateAllocator);
             var materialList  = new NativeList<UnityObjectRef<Material> >(WorldUpdateAllocator);
             var rangesList    = new NativeList<MaterialMeshIndex>(WorldUpdateAllocator);
-            var duplicatesMap = new NativeParallelMultiHashMap<PossiblyUniqueMMI, Entity>(128, Allocator.TempJob);
+            var duplicatesMap = new NativeParallelMultiHashMap<PossiblyUniqueMMI, Entity>(128, WorldUpdateAllocator);
             if (!renderablesWithLightmapsQuery.IsEmptyIgnoreFilter)
             {
                 new CollectUniqueMeshesAndMaterialsJob
