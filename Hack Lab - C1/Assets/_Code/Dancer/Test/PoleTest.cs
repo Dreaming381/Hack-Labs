@@ -36,12 +36,11 @@ namespace Dragons
                 {
                     var solver = new SimpleConeConstraintSolver
                     {
-                        cosY             = math.cos(math.radians(10f)),
-                        sinX             = math.sin(math.radians(10f)),
-                        numIterations    = 12,
+                        maxAngleToParent = math.radians(20f),
+                        numIterations    = 1,
                         dampedIterations = 2,
-                        dampFactor       = 0.7f,
-                        //useConstraints   = true
+                        dampMaxAngle     = math.PI / 100f,
+                        useConstraints   = true
                     };
                     Span<Ewbik.Target> targetSpan = stackalloc Ewbik.Target[1];
                     targetSpan[0]                 = new Ewbik.Target
@@ -49,7 +48,7 @@ namespace Dragons
                         boneIndex                                    = (short)(skeleton.boneCount - 2),  // I told blender to not add a leaf bone, but...
                         boneLocalPositionOffsetToMatchTargetPosition = math.up(),
                         positionWeight                               = 1f,
-                        rotationWeight                               = 0f,
+                        rotationWeight                               = 5f,
                         rootRelativePosition                         = target.position,
                         rootRelativeRotation                         = target.rotation,
                         targetUserId                                 = 0,
@@ -63,51 +62,46 @@ namespace Dragons
 
         struct SimpleConeConstraintSolver : Ewbik.IConstraintSolver
         {
-            public float cosY;
-            public float sinX;
+            public float maxAngleToParent;
             public int   numIterations;
             public int   dampedIterations;
-            public float dampFactor;
+            public float dampMaxAngle;
             public bool  useConstraints;
 
             public bool ApplyConstraintsToBone(OptimizedBone bone, in RigidTransform proposedTransformDelta, in Ewbik.BoneSolveState boneSolveState)
             {
-                var newRotation = math.normalize(qvvs.InverseTransformRotation(bone.parent.rootTransform, math.mul(proposedTransformDelta.rot, bone.rootRotation)));
-                var newUp       = math.mul(newRotation, math.up());
-                var newRight    = math.normalize(math.mul(newRotation, math.right()).xz);
-                //UnityEngine.Debug.Log($"Iteration: {boneSolveState.iterationsCompletedForSkeleton}, index: {bone.index}, newUp: {newUp}, newRight: {newRight}");
-                if (!useConstraints)
+                var newRotation = proposedTransformDelta.rot;
+                var angle       = math.angle(quaternion.identity, newRotation);
+                // If the bone didn't move, then we don't need to do anything further.
+                if (angle > math.EPSILON)
                 {
-                    bone.localRotation = newRotation;
-                    return false;
-                }
-                if (newUp.y < cosY)
-                {
-                    // ay / sqrt(ay * ay + x * x + z * z) = cosY
-                    // ay = cosY * sqrt(ay * ay + x * x + z * z)
-                    // ay * ay = cosY * cosY * (ay * ay + x * x + z * z)
-                    // ay * ay - cosY * cosY * ay * ay = cosY * cosY * (x * x + z * z)
-                    // (1 - cosY * cosY)(ay * ay) = cosY * cosY * (x * x + z * z)
-                    // a * a = cosY * cosY * (x * x + z * z) / (y * y - y * y * cosY * cosY)
-                    var yScale  = math.sqrt(cosY * cosY * math.lengthsq(newUp.xz) / (newUp.y * newUp.y * (1 - cosY * cosY)));
-                    newUp.y    *= yScale;
-                    newUp       = math.normalize(newUp);
+                    // This limits how much we want to move the bone by each iteration, to prevent "popping".
+                    if (angle > dampMaxAngle)
+                        newRotation = math.slerp(quaternion.identity, newRotation, dampMaxAngle / angle);
+
+                    // This is just a total angle difference to parent constraint. You'd replace this with your own constraint algorithm.
+                    // Remember newRotation is a delta that needs to be applied. That's important for the mean-squared-distance calculation.
+                    if (useConstraints)
+                    {
+                        var newLocalRotation = math.InverseRotateFast(bone.parent.rootRotation, math.mul(newRotation, bone.rootRotation));
+                        var parentAngle      = math.angle(quaternion.identity, newLocalRotation);
+                        if (parentAngle > maxAngleToParent)
+                        {
+                            var newConstrainedRotation = math.slerp(quaternion.identity, newLocalRotation, maxAngleToParent / parentAngle);
+                            newRotation                = math.InverseRotateFast(bone.localRotation, newConstrainedRotation);
+                        }
+                    }
+
+                    // Make sure that after all out damping and constraints, that we actually got closer to the solution.
+                    // If not, we don't apply the transform.
+                    var oldMsd = boneSolveState.MeanSquareDistanceFrom(TransformQvvs.identity);
+                    var newMsd = boneSolveState.MeanSquareDistanceFrom(new TransformQvvs(float3.zero, newRotation));
+                    if (newMsd < oldMsd)
+                    {
+                        bone.rootRotation = math.normalize(math.mul(newRotation, bone.rootRotation));
+                    }
                 }
 
-                if (math.abs(newRight.y) > sinX)
-                {
-                    newRight.y = math.sign(newRight.y) * sinX;
-                    newRight.x = math.sqrt(1 - newRight.y * newRight.y);
-                }
-                var targetRight   = newRight.x0y();
-                var targetForward = math.cross(targetRight, newUp);
-                targetRight       = math.cross(newUp, targetForward);
-                newRotation       = new quaternion(new float3x3(targetRight, newUp, targetForward));
-                if (boneSolveState.iterationsCompletedForSkeleton < dampedIterations)
-                {
-                    newRotation = math.nlerp(bone.localRotation, newRotation, dampFactor);
-                }
-                bone.localRotation = newRotation;
                 return false;
             }
 

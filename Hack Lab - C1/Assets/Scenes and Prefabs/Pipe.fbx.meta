@@ -27,7 +27,20 @@ ModelImporter:
     animationPositionError: 0.5
     animationScaleError: 0.5
     animationWrapMode: 0
-    extraExposedTransformPaths: []
+    extraExposedTransformPaths:
+    - Armature
+    - Armature/Bone
+    - Armature/Bone/Bone.001
+    - Armature/Bone/Bone.001/Bone.003
+    - Armature/Bone/Bone.001/Bone.003/Bone.005
+    - Armature/Bone/Bone.001/Bone.003/Bone.005/Bone.007
+    - Armature/Bone/Bone.001/Bone.003/Bone.005/Bone.007/Bone.009
+    - Armature/Bone/Bone.001/Bone.003/Bone.005/Bone.007/Bone.009/Bone.011
+    - Armature/Bone/Bone.001/Bone.003/Bone.005/Bone.007/Bone.009/Bone.011/Bone.013
+    - Armature/Bone/Bone.001/Bone.003/Bone.005/Bone.007/Bone.009/Bone.011/Bone.013/Bone.015
+    - Armature/Bone/Bone.001/Bone.003/Bone.005/Bone.007/Bone.009/Bone.011/Bone.013/Bone.015/Bone.017
+    - Armature/Bone/Bone.001/Bone.003/Bone.005/Bone.007/Bone.009/Bone.011/Bone.013/Bone.015/Bone.017/Bone.017_end
+    - Cylinder
     extraUserProperties: []
     clipAnimations: []
     isReadable: 0
