@@ -110,7 +110,7 @@ namespace Latios.LifeFX
             }
 
             for (counter = 0; counter < typesToCompile.Length; counter++)
-                CompileType(ref instructionsByType[counter], typeIndicesToHandleIndices);
+                CompileType(ref instructionsByType[counter], typesToCompile[counter], typeIndicesToHandleIndices);
 
             var handles = builder.Allocate(ref root.typeIndicesForTypeHandles, typeIndicesToHandleIndices.Count);
             foreach (var indices in typeIndicesToHandleIndices)
@@ -119,9 +119,137 @@ namespace Latios.LifeFX
             s_blob = builder.CreateBlobAssetReference<GraphicsSyncInstructionsBlob>(Allocator.Persistent);
         }
 
-        static void CompileType(ref GraphicsSyncInstructionsForType instructionsForType, NativeHashMap<TypeIndex, byte> typeIndicesToHandleIndices)
+        static GraphicsSyncGatherRegistration s_registration = new GraphicsSyncGatherRegistration();
+
+        static unsafe void CompileType(ref GraphicsSyncInstructionsForType instructionsForType, TypeIndex type, NativeHashMap<TypeIndex, byte> typeIndicesToHandleIndices)
         {
+            s_registration.bitPackRanges    = new UnsafeList<GraphicsSyncGatherRegistration.BitPackRange>(4, Allocator.Temp);
+            s_registration.assignmentRanges = new UnsafeList<GraphicsSyncGatherRegistration.AssignmentRange>(8, Allocator.Temp);
+            var ops                         = new UnsafeList<GraphicsSyncCopyOp>(32, Allocator.Temp);
+
+            var  boxed                 = Activator.CreateInstance(TypeManager.GetTypeInfo(type).Type) as IGraphicsSyncComponentBase;
+            var  sizeAndAlignment      = boxed.GetTypeSizeAndAlignmentBase();
+            var  elementBytes          = new Span<byte>(AllocatorManager.Allocate(Allocator.Temp, sizeAndAlignment.x, sizeAndAlignment.y), sizeAndAlignment.x);
+            bool needsMoreRegistration = true;
+            int  passIndex             = 0;
+            while (needsMoreRegistration)
+            {
+                elementBytes.Clear();
+                s_registration.nextByte = 1;
+                s_registration.bitPackRanges.Clear();
+                s_registration.assignmentRanges.Clear();
+                needsMoreRegistration = boxed.RegisterBase(s_registration, ref elementBytes, passIndex);
+
+                for (int i = 0; i < elementBytes.Length; i++)
+                {
+                    var assignedByte = elementBytes[i];
+                    if (assignedByte == 0)
+                        continue;
+
+                    var assignmentRange = FindRange(s_registration, assignedByte, i);
+                    if (assignmentRange.bitPackCount == 0)
+                    {
+                        ops.Add(new GraphicsSyncCopyOp
+                        {
+                            srcStart           = (short)(assignedByte - assignmentRange.start),
+                            dstStart           = (short)i,
+                            count              = 1,
+                            indexInTypeHandles = GetHandleIndexForType(assignmentRange.type, typeIndicesToHandleIndices),
+                            opType             = GraphicsSyncCopyOp.OpType.ByteRange
+                        });
+                    }
+                    else
+                    {
+                        var dstBitStart     = i * 8;
+                        var bitPackBitStart = 8 * (assignedByte - assignmentRange.start);
+                        for (int j = 0; j < assignmentRange.bitPackCount; j++)
+                        {
+                            var packData = s_registration.bitPackRanges[j];
+                            if (packData.packBitStart >= bitPackBitStart + 8 || packData.packBitStart + packData.componentBitCount < bitPackBitStart)
+                                continue;
+
+                            if (packData.isExistBit)
+                            {
+                                ops.Add(new GraphicsSyncCopyOp
+                                {
+                                    count              = 1,
+                                    dstStart           = (short)(packData.packBitStart - bitPackBitStart + dstBitStart),
+                                    srcStart           = 0,
+                                    indexInTypeHandles = 0,
+                                    opType             = GraphicsSyncCopyOp.OpType.SyncExist
+                                });
+                            }
+                            else if (packData.isEnabledBit)
+                            {
+                                ops.Add(new GraphicsSyncCopyOp
+                                {
+                                    count              = 1,
+                                    dstStart           = (short)(packData.packBitStart - bitPackBitStart + dstBitStart),
+                                    srcStart           = 0,
+                                    indexInTypeHandles = GetHandleIndexForType(packData.type, typeIndicesToHandleIndices),
+                                    opType             = GraphicsSyncCopyOp.OpType.ComponentEnabled
+                                });
+                            }
+                            else if (packData.isHasComponentBit)
+                            {
+                                ops.Add(new GraphicsSyncCopyOp
+                                {
+                                    count              = 1,
+                                    dstStart           = (short)(packData.packBitStart - bitPackBitStart + dstBitStart),
+                                    srcStart           = 0,
+                                    indexInTypeHandles = GetHandleIndexForType(packData.type, typeIndicesToHandleIndices),
+                                    opType             = GraphicsSyncCopyOp.OpType.ComponentExist
+                                });
+                            }
+                            else
+                            {
+                                var dstStartRelative = packData.packBitStart - bitPackBitStart;
+                                var maxBits          = 8 - math.max(0, dstStartRelative);
+                                var count            = (short)math.min(dstStartRelative + packData.componentBitCount, maxBits);
+                                var dstStart         = (short)(math.max(0, packData.packBitStart - bitPackBitStart) + dstBitStart);
+                                var srcStart         = (short)(packData.componentBitStart + math.max(0, bitPackBitStart - packData.packBitStart));
+
+                                ops.Add(new GraphicsSyncCopyOp
+                                {
+                                    count              = count,
+                                    dstStart           = dstStart,
+                                    srcStart           = srcStart,
+                                    indexInTypeHandles = GetHandleIndexForType(packData.type, typeIndicesToHandleIndices),
+                                    opType             = GraphicsSyncCopyOp.OpType.BitRange
+                                });
+                            }
+                        }
+                    }
+                }
+
+                passIndex++;
+            }
             // Todo
+        }
+
+        static GraphicsSyncGatherRegistration.AssignmentRange FindRange(GraphicsSyncGatherRegistration registration, byte b, int offset)
+        {
+            foreach (var assignment in registration.assignmentRanges)
+            {
+                if (assignment.start <= b && assignment.start + assignment.count > b)
+                    return assignment;
+            }
+            throw new System.InvalidOperationException($"Range not found for the byte at offset {offset}. The assignment codes may be corrupted.");
+        }
+
+        static byte GetHandleIndexForType(TypeIndex typeIndex, NativeHashMap<TypeIndex, byte> map)
+        {
+            var found = map.TryGetValue(typeIndex, out var handleIndex);
+            if (found)
+                return handleIndex;
+
+            var count = map.Count;
+            if (count >= 255)
+                throw new System.InvalidOperationException("Too many different component types have been collected.");
+
+            handleIndex = (byte)count;
+            map.Add(typeIndex, handleIndex);
+            return handleIndex;
         }
     }
 }

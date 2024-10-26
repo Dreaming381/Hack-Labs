@@ -69,7 +69,7 @@ namespace Latios.LifeFX
             byte* ptr    = (byte*)&result;
             var   range  = new AssignmentRange
             {
-                type         = ComponentType.ReadWrite<T>(),
+                type         = TypeManager.GetTypeIndex<T>(),
                 start        = nextByte,
                 count        = (byte)UnsafeUtility.SizeOf<T>(),
                 bitPackStart = 0,
@@ -95,9 +95,9 @@ namespace Latios.LifeFX
             {
                 type         = default,
                 start        = nextByte,
-                count        = (byte)UnsafeUtility.SizeOf<T>(),
-                bitPackStart = (byte)bitPackRanges.Length,
-                bitPackCount = 0
+                count        = UnsafeUtility.SizeOf<T>(),
+                bitPackStart = bitPackRanges.Length,
+                bitPackCount = builder.pendingRanges.Length
             };
             for (int i = 0; i < range.count; i++)
             {
@@ -105,6 +105,7 @@ namespace Latios.LifeFX
                 nextByte++;
             }
             assignmentRanges.Add(range);
+            bitPackRanges.AddRange(builder.pendingRanges);
             return result;
         }
 
@@ -127,7 +128,7 @@ namespace Latios.LifeFX
                 SetAndTestBits(bitIndex, 1);
                 pendingRanges.Add(new BitPackRange
                 {
-                    type              = ComponentType.ReadWrite<TComponent>(),
+                    type              = TypeManager.GetTypeIndex<TComponent>(),
                     componentBitStart = 0,
                     componentBitCount = 1,
                     isEnabledBit      = true,
@@ -143,7 +144,7 @@ namespace Latios.LifeFX
                 SetAndTestBits(bitIndex, 1);
                 pendingRanges.Add(new BitPackRange
                 {
-                    type              = ComponentType.ReadWrite<TComponent>(),
+                    type              = TypeManager.GetTypeIndex<TComponent>(),
                     componentBitStart = 0,
                     componentBitCount = 1,
                     isEnabledBit      = false,
@@ -159,7 +160,7 @@ namespace Latios.LifeFX
                 SetAndTestBits(bitIndex, 1);
                 pendingRanges.Add(new BitPackRange
                 {
-                    type              = ComponentType.ReadWrite<TComponent>(),
+                    type              = TypeManager.GetTypeIndex<TComponent>(),
                     componentBitStart = 0,
                     componentBitCount = 1,
                     isEnabledBit      = false,
@@ -175,7 +176,7 @@ namespace Latios.LifeFX
                 SetAndTestBits(bitIndex, 1);
                 pendingRanges.Add(new BitPackRange
                 {
-                    type              = ComponentType.ReadWrite<TComponent>(),
+                    type              = TypeManager.GetTypeIndex<TComponent>(),
                     componentBitStart = 0,
                     componentBitCount = 1,
                     isEnabledBit      = false,
@@ -207,7 +208,7 @@ namespace Latios.LifeFX
                 SetAndTestBits(packBitStart, bitCount);
                 pendingRanges.Add(new BitPackRange
                 {
-                    type              = ComponentType.ReadWrite<TComponent>(),
+                    type              = TypeManager.GetTypeIndex<TComponent>(),
                     componentBitStart = componentBitStart,
                     componentBitCount = bitCount,
                     isEnabledBit      = false,
@@ -237,22 +238,22 @@ namespace Latios.LifeFX
 
         internal struct AssignmentRange
         {
-            public ComponentType type;
-            public int           start;
-            public int           count;
-            public int           bitPackStart;
-            public int           bitPackCount;
+            public TypeIndex type;
+            public int       start;
+            public int       count;
+            public int       bitPackStart;
+            public int       bitPackCount;
         }
 
         internal struct BitPackRange
         {
-            public ComponentType type;
-            public int           componentBitStart;
-            public int           componentBitCount;
-            public int           packBitStart;
-            public bool          isEnabledBit;
-            public bool          isHasComponentBit;
-            public bool          isExistBit;
+            public TypeIndex type;
+            public int       componentBitStart;
+            public int       componentBitCount;
+            public int       packBitStart;
+            public bool      isEnabledBit;
+            public bool      isHasComponentBit;
+            public bool      isExistBit;
         }
 
         internal UnsafeList<AssignmentRange> assignmentRanges;
