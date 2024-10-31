@@ -1,5 +1,313 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2239588678608650684
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6886183245763556818}
+  - component: {fileID: 3857803430784772409}
+  m_Layer: 0
+  m_Name: Left Toe Socket
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6886183245763556818
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2239588678608650684}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 3723593435578316372}
+  m_Father: {fileID: 7229573673842458106}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3857803430784772409
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2239588678608650684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d660dc5ca384634ab4851fed8d897ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  boneIndex: 12
+--- !u!1 &3017176451271643639
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1687817606962945924}
+  - component: {fileID: 2048371743389813420}
+  - component: {fileID: 72704229918581383}
+  - component: {fileID: 6004949467815664277}
+  m_Layer: 0
+  m_Name: Sphere
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1687817606962945924
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3017176451271643639}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 699869918077378903}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &2048371743389813420
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3017176451271643639}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &72704229918581383
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3017176451271643639}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!135 &6004949467815664277
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3017176451271643639}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &7248572576514234022
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 699869918077378903}
+  - component: {fileID: 6563273220685685274}
+  m_Layer: 0
+  m_Name: Right Toe Socket
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &699869918077378903
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7248572576514234022}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1687817606962945924}
+  m_Father: {fileID: 7229573673842458106}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6563273220685685274
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7248572576514234022}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d660dc5ca384634ab4851fed8d897ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  boneIndex: 13
+--- !u!1 &8547141863298382570
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3723593435578316372}
+  - component: {fileID: 6195167474249156033}
+  - component: {fileID: 5165984775741825276}
+  - component: {fileID: 7634867389955456322}
+  m_Layer: 0
+  m_Name: Cube
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3723593435578316372
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8547141863298382570}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6886183245763556818}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &6195167474249156033
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8547141863298382570}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &5165984775741825276
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8547141863298382570}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &7634867389955456322
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8547141863298382570}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &7229573673842321272
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -62,12 +370,24 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 5549ab32bc2b57e4a95393e2dec41674, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 400002, guid: 340426666c54d714881b17f349e08bc5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6886183245763556818}
+    - targetCorrespondingSourceObject: {fileID: 400002, guid: 340426666c54d714881b17f349e08bc5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 699869918077378903}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 100002, guid: 340426666c54d714881b17f349e08bc5,
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 5831655860642772153}
+    - targetCorrespondingSourceObject: {fileID: 100002, guid: 340426666c54d714881b17f349e08bc5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -4293259155804318249}
   m_SourcePrefab: {fileID: 100100000, guid: 340426666c54d714881b17f349e08bc5, type: 3}
 --- !u!1 &7229573673842287066 stripped
 GameObject:
@@ -87,18 +407,837 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95229693b92a55f48b1b6ce373189b15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  leftFoot: {fileID: 7229573673842458092}
-  rightFoot: {fileID: 7229573673842458064}
+  leftFoot: {fileID: 6886183245763556818}
+  rightFoot: {fileID: 699869918077378903}
   offset: 0.02
---- !u!4 &7229573673842458064 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 400040, guid: 340426666c54d714881b17f349e08bc5,
-    type: 3}
-  m_PrefabInstance: {fileID: 7229573673842321272}
+--- !u!114 &-4293259155804318249
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &7229573673842458092 stripped
+  m_GameObject: {fileID: 7229573673842287066}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f2cc048c91595e469656e55559df696, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_bones:
+  - rootTransform:
+      rotation:
+        value:
+          x: 0
+          y: 0
+          z: 0
+          w: 1
+      position:
+        x: 0
+        y: 0
+        z: 0
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: 0
+          y: 0
+          z: 0
+          w: 1
+      position:
+        x: 0
+        y: 0
+        z: 0
+      scale: 1
+    parentIndex: -1
+    shortName: Dancer Dots Optimized Variant(Clone)
+    reversePath: Dancer Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0
+          y: 0
+          z: 0
+          w: 1
+      position:
+        x: 0.0000059127806
+        y: -0.003282249
+        z: -0.12968259
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: 0
+          y: 0
+          z: 0
+          w: 1
+      position:
+        x: 0.0000059127806
+        y: -0.003282249
+        z: -0.12968259
+      scale: 1
+    parentIndex: 0
+    shortName: Neo_Reference
+    reversePath: Neo_Reference/Dancer Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.514734
+          y: 0.4848184
+          z: -0.514734
+          w: -0.4848184
+      position:
+        x: 0.0000058889386
+        y: 0.94364065
+        z: -0.031651393
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: 0.514734
+          y: 0.4848184
+          z: -0.514734
+          w: -0.4848184
+      position:
+        x: -0.000000023841856
+        y: 0.9469229
+        z: 0.09803119
+      scale: 1
+    parentIndex: 1
+    shortName: Neo_Hips
+    reversePath: Neo_Hips/Neo_Reference/Dancer Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.49999586
+          y: -0.5000042
+          z: -0.49999586
+          w: 0.5000042
+      position:
+        x: 0.091491975
+        y: 0.90253794
+        z: -0.033924147
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: 0
+          y: 0
+          z: 0.9995527
+          w: 0.029907286
+      position:
+        x: -0.040893186
+        y: 0.004726813
+        z: -0.09148609
+      scale: 1
+    parentIndex: 2
+    shortName: Neo_LeftUpLeg
+    reversePath: Neo_LeftUpLeg/Neo_Hips/Neo_Reference/Dancer Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.49996656
+          y: 0.5000335
+          z: -0.49996653
+          w: -0.50003356
+      position:
+        x: -0.091480196
+        y: 0.90253794
+        z: -0.033924155
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: 9.0349744e-10
+          y: 0.000000030245893
+          z: -0.029982578
+          w: 0.99955046
+      position:
+        x: -0.040893186
+        y: 0.004726813
+        z: 0.09148608
+      scale: 1
+    parentIndex: 2
+    shortName: Neo_RightUpLeg
+    reversePath: Neo_RightUpLeg/Neo_Hips/Neo_Reference/Dancer Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.4968899
+          y: 0.5030909
+          z: -0.4968899
+          w: -0.5030909
+      position:
+        x: 0.0000058889386
+        y: 1.0410246
+        z: -0.037485827
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: 0
+          y: -0
+          z: -0.036113307
+          w: 0.99934775
+      position:
+        x: 0.0975585
+        y: 8.049232e-11
+        z: 2.1661274e-17
+      scale: 1
+    parentIndex: 2
+    shortName: Neo_Spine
+    reversePath: Neo_Spine/Neo_Hips/Neo_Reference/Dancer Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.49999586
+          y: -0.5000042
+          z: -0.49999586
+          w: 0.5000042
+      position:
+        x: 0.091492034
+        y: 0.4959327
+        z: -0.033917487
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1.0000002
+    localTransform:
+      rotation:
+        value:
+          x: 0
+          y: 0
+          z: 0
+          w: 1
+      position:
+        x: 0.4066052
+        y: -0.00000010288717
+        z: -0.000000085830685
+      scale: 1.0000002
+    parentIndex: 3
+    shortName: Neo_LeftLeg
+    reversePath: Neo_LeftLeg/Neo_LeftUpLeg/Neo_Hips/Neo_Reference/Dancer Dots Optimized
+      Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.49996898
+          y: 0.50003105
+          z: -0.499969
+          w: -0.5000311
+      position:
+        x: -0.091480196
+        y: 0.49593264
+        z: -0.033978604
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1.0000001
+    localTransform:
+      rotation:
+        value:
+          x: 2.0322612e-13
+          y: -0.00000004154904
+          z: 0.000004891235
+          w: 1
+      position:
+        x: -0.4066052
+        y: -0.00000001004606
+        z: 0.000000042149956
+      scale: 1.0000001
+    parentIndex: 4
+    shortName: Neo_RightLeg
+    reversePath: Neo_RightLeg/Neo_RightUpLeg/Neo_Hips/Neo_Reference/Dancer Dots Optimized
+      Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.4961569
+          y: 0.5038138
+          z: -0.4961569
+          w: -0.5038138
+      position:
+        x: 0.0000058740375
+        y: 1.2123743
+        z: -0.035360638
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: 0
+          y: -0
+          z: -0.0014559262
+          w: 0.9999989
+      position:
+        x: 0.17136289
+        y: 0.000000011315119
+        z: -0.000000005106558
+      scale: 1
+    parentIndex: 5
+    shortName: Neo_Spine1
+    reversePath: Neo_Spine1/Neo_Spine/Neo_Hips/Neo_Reference/Dancer Dots Optimized
+      Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.69872653
+          y: -0.108543575
+          z: -0.69872606
+          w: 0.108543634
+      position:
+        x: 0.091492094
+        y: 0.052860767
+        z: -0.033910245
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1.0000002
+    localTransform:
+      rotation:
+        value:
+          x: 0.00000018290748
+          y: 0.00000025019085
+          z: -0.59018934
+          w: 0.8072649
+      position:
+        x: 0.44307178
+        y: -0.00000011197301
+        z: -0.00000008583067
+      scale: 1
+    parentIndex: 6
+    shortName: Neo_LeftFoot
+    reversePath: Neo_LeftFoot/Neo_LeftLeg/Neo_LeftUpLeg/Neo_Hips/Neo_Reference/Dancer
+      Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.108548
+          y: 0.6986983
+          z: -0.10853929
+          w: -0.6987542
+      position:
+        x: -0.091480196
+        y: 0.052860707
+        z: -0.034033604
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1.0000001
+    localTransform:
+      rotation:
+        value:
+          x: 0.000023553679
+          y: 0.000032231466
+          z: -0.5901324
+          w: 0.80730647
+      position:
+        x: -0.44307184
+        y: -0.000000020713253
+        z: 0.000000048151225
+      scale: 1
+    parentIndex: 7
+    shortName: Neo_RightFoot
+    reversePath: Neo_RightFoot/Neo_RightLeg/Neo_RightUpLeg/Neo_Hips/Neo_Reference/Dancer
+      Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.49483377
+          y: 0.5051134
+          z: -0.49483377
+          w: -0.5051134
+      position:
+        x: 0.0000058591363
+        y: 1.3511394
+        z: -0.03323545
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: 0
+          y: -0
+          z: -0.0026228526
+          w: 0.9999966
+      position:
+        x: 0.13878137
+        y: 0.000000017048766
+        z: 3.4197903e-17
+      scale: 1
+    parentIndex: 8
+    shortName: Neo_Spine2
+    reversePath: Neo_Spine2/Neo_Spine1/Neo_Spine/Neo_Hips/Neo_Reference/Dancer Dots
+      Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.69872653
+          y: -0.108543575
+          z: -0.69872606
+          w: 0.108543634
+      position:
+        x: 0.091492146
+        y: 0.015106335
+        z: -0.15249582
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1.0000002
+    localTransform:
+      rotation:
+        value:
+          x: 0
+          y: 0
+          z: 0
+          w: 1
+      position:
+        x: 0.12445047
+        y: -9.436656e-10
+        z: -0.000000008691233
+      scale: 1
+    parentIndex: 9
+    shortName: Neo_LeftToeBase
+    reversePath: Neo_LeftToeBase/Neo_LeftFoot/Neo_LeftLeg/Neo_LeftUpLeg/Neo_Hips/Neo_Reference/Dancer
+      Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.108548
+          y: 0.6986983
+          z: -0.10853929
+          w: -0.6987542
+      position:
+        x: -0.09149012
+        y: 0.015106268
+        z: -0.15261915
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1.0000001
+    localTransform:
+      rotation:
+        value:
+          x: 0
+          y: 0
+          z: 0
+          w: 1
+      position:
+        x: -0.12445047
+        y: 0.0000000014492009
+        z: -0.000000007638004
+      scale: 1
+    parentIndex: 10
+    shortName: Neo_RightToeBase
+    reversePath: Neo_RightToeBase/Neo_RightFoot/Neo_RightLeg/Neo_RightUpLeg/Neo_Hips/Neo_Reference/Dancer
+      Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.000000059604645
+          y: 0.000000029802322
+          z: 0.22249417
+          w: -0.9749341
+      position:
+        x: 0.08899056
+        y: 1.4834964
+        z: -0.010728568
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: 0.37004548
+          y: 0.6025499
+          z: -0.5948151
+          w: 0.38235468
+      position:
+        x: 0.13279176
+        y: -0.01978109
+        z: -0.0889847
+      scale: 1
+    parentIndex: 11
+    shortName: Neo_LeftShoulder
+    reversePath: Neo_LeftShoulder/Neo_Spine2/Neo_Spine1/Neo_Spine/Neo_Hips/Neo_Reference/Dancer
+      Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.9749341
+          y: 0.22249418
+          z: -0.000000029802322
+          w: 0.000000044703484
+      position:
+        x: -0.088978864
+        y: 1.4834964
+        z: -0.010728572
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: -0.6025499
+          y: 0.37004548
+          z: 0.38235468
+          w: 0.5948151
+      position:
+        x: 0.13279176
+        y: -0.019781096
+        z: 0.0889847
+      scale: 1
+    parentIndex: 11
+    shortName: Neo_RightShoulder
+    reversePath: Neo_RightShoulder/Neo_Spine2/Neo_Spine1/Neo_Spine/Neo_Hips/Neo_Reference/Dancer
+      Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.5783001
+          y: 0.40690178
+          z: -0.5783001
+          w: -0.40690178
+      position:
+        x: 0.000005844235
+        y: 1.5373908
+        z: -0.029405642
+      worldIndex: 0
+      stretch:
+        x: 1.0000002
+        y: 1.0000001
+        z: 1.0000002
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: 0
+          y: 0
+          z: 0.1815168
+          w: 0.9833879
+      position:
+        x: 0.18629074
+        y: 0.0000000054149853
+        z: -5.820304e-13
+      scale: 1
+    parentIndex: 11
+    shortName: Neo_Neck
+    reversePath: Neo_Neck/Neo_Spine2/Neo_Spine1/Neo_Spine/Neo_Hips/Neo_Reference/Dancer
+      Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.70710695
+          y: 0.000000020424894
+          z: -0.000000009257123
+          w: -0.7071068
+      position:
+        x: 0.1959391
+        y: 1.4319998
+        z: -0.010728566
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: -0.6893825
+          y: -0.15732715
+          z: 0.15732715
+          w: 0.6893825
+      position:
+        x: 0.11870083
+        y: -0.00000010170189
+        z: -0.00000000834465
+      scale: 1
+    parentIndex: 14
+    shortName: Neo_LeftArm
+    reversePath: Neo_LeftArm/Neo_LeftShoulder/Neo_Spine2/Neo_Spine1/Neo_Spine/Neo_Hips/Neo_Reference/Dancer
+      Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.7071068
+          y: 0.000000014901161
+          z: -0.000000014901161
+          w: 0.70710695
+      position:
+        x: -0.19592741
+        y: 1.4319998
+        z: -0.010728559
+      worldIndex: 0
+      stretch:
+        x: 1.0000002
+        y: 1.0000001
+        z: 1.0000001
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: -0.6893825
+          y: -0.15732715
+          z: 0.15732715
+          w: 0.6893825
+      position:
+        x: -0.11870083
+        y: 0.00000010170189
+        z: -0.0000000023841857
+      scale: 1
+    parentIndex: 15
+    shortName: Neo_RightArm
+    reversePath: Neo_RightArm/Neo_RightShoulder/Neo_Spine2/Neo_Spine1/Neo_Spine/Neo_Hips/Neo_Reference/Dancer
+      Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.5783001
+          y: 0.40690178
+          z: -0.5783001
+          w: -0.40690178
+      position:
+        x: 0.0000057995317
+        y: 1.6618557
+        z: -0.07406431
+      worldIndex: 0
+      stretch:
+        x: 1.0000002
+        y: 1.0000001
+        z: 1.0000002
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: 0
+          y: 0
+          z: 0
+          w: 1
+      position:
+        x: 0.13223423
+        y: -0.000000013813483
+        z: 0.000000013861569
+      scale: 1
+    parentIndex: 16
+    shortName: Neo_Head
+    reversePath: Neo_Head/Neo_Neck/Neo_Spine2/Neo_Spine1/Neo_Spine/Neo_Hips/Neo_Reference/Dancer
+      Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.70710695
+          y: 0.000000020424894
+          z: -0.000000009257123
+          w: -0.7071068
+      position:
+        x: 0.43691844
+        y: 1.4319998
+        z: -0.010728583
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: 0
+          y: 0
+          z: 0
+          w: 1
+      position:
+        x: 0.24097936
+        y: 0.000000020265581
+        z: -8.5265126e-16
+      scale: 1
+    parentIndex: 17
+    shortName: Neo_LeftForeArm
+    reversePath: Neo_LeftForeArm/Neo_LeftArm/Neo_LeftShoulder/Neo_Spine2/Neo_Spine1/Neo_Spine/Neo_Hips/Neo_Reference/Dancer
+      Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.7071068
+          y: 0.000000014901161
+          z: -0.000000014901161
+          w: 0.70710695
+      position:
+        x: -0.4369067
+        y: 1.4319998
+        z: -0.010728553
+      worldIndex: 0
+      stretch:
+        x: 1.0000002
+        y: 1.0000001
+        z: 1.0000001
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: 0
+          y: 0
+          z: 0
+          w: 1
+      position:
+        x: -0.24097924
+        y: -0.000000003576278
+        z: 2.842171e-16
+      scale: 1
+    parentIndex: 18
+    shortName: Neo_RightForeArm
+    reversePath: Neo_RightForeArm/Neo_RightArm/Neo_RightShoulder/Neo_Spine2/Neo_Spine1/Neo_Spine/Neo_Hips/Neo_Reference/Dancer
+      Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.70710695
+          y: 0.000000020424894
+          z: -0.000000009257123
+          w: -0.7071068
+      position:
+        x: 0.71012497
+        y: 1.4319998
+        z: -0.010728601
+      worldIndex: 0
+      stretch:
+        x: 1
+        y: 1
+        z: 1
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: 0
+          y: 0
+          z: 0
+          w: 1
+      position:
+        x: 0.2732065
+        y: 0.000000022649767
+        z: 0
+      scale: 1
+    parentIndex: 20
+    shortName: Neo_LeftHand
+    reversePath: Neo_LeftHand/Neo_LeftForeArm/Neo_LeftArm/Neo_LeftShoulder/Neo_Spine2/Neo_Spine1/Neo_Spine/Neo_Hips/Neo_Reference/Dancer
+      Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  - rootTransform:
+      rotation:
+        value:
+          x: 0.7071068
+          y: 0.000000014901161
+          z: -0.000000014901161
+          w: 0.70710695
+      position:
+        x: -0.71011317
+        y: 1.4319998
+        z: -0.010728545
+      worldIndex: 0
+      stretch:
+        x: 1.0000002
+        y: 1.0000001
+        z: 1.0000001
+      scale: 1
+    localTransform:
+      rotation:
+        value:
+          x: 0
+          y: 0
+          z: 0
+          w: 1
+      position:
+        x: -0.2732064
+        y: -0.000000003576278
+        z: -0.000000013303687
+      scale: 1
+    parentIndex: 21
+    shortName: Neo_RightHand
+    reversePath: Neo_RightHand/Neo_RightForeArm/Neo_RightArm/Neo_RightShoulder/Neo_Spine2/Neo_Spine1/Neo_Spine/Neo_Hips/Neo_Reference/Dancer
+      Dots Optimized Variant(Clone)/
+    importedSocket: {fileID: 0}
+  m_validateDuringBaking: 1
+  m_isClone: 0
+--- !u!4 &7229573673842458106 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 400020, guid: 340426666c54d714881b17f349e08bc5,
+  m_CorrespondingSourceObject: {fileID: 400002, guid: 340426666c54d714881b17f349e08bc5,
     type: 3}
   m_PrefabInstance: {fileID: 7229573673842321272}
   m_PrefabAsset: {fileID: 0}

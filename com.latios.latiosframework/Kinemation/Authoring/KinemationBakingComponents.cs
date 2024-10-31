@@ -69,6 +69,9 @@ namespace Latios.Kinemation.Authoring
         public UnityObjectRef<GameObject> authoringGameObjectForBone;
     }
 
+    [BakingType]
+    internal struct AuthoredSocket : IComponentData { }
+
     [TemporaryBakingType]
     internal struct PendingMeshBindingPathsBlob : IComponentData
     {

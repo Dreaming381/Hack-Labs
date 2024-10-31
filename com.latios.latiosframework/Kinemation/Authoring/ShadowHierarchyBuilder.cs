@@ -92,7 +92,7 @@ namespace Latios.Kinemation.Authoring
 
                 // If the child has an Animator or SkinnedMeshRenderer, it shouldn't be animated, so delete it.
                 if (shadowChild.GetComponent<SkinnedMeshRenderer>() != null || shadowChild.GetComponent<Animator>() != null ||
-                    shadowChild.GetComponent<ExcludeFromSkeletonAuthoring>() != null)
+                    shadowChild.GetComponent<SocketAuthoring>() != null || shadowChild.GetComponent<ExcludeFromSkeletonAuthoring>() != null)
                 {
                     RecurseTagSkinnedOrDelete(sourceChild, shadowChild);
                     continue;

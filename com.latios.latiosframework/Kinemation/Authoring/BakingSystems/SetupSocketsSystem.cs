@@ -27,11 +27,6 @@ namespace Latios.Kinemation.Authoring.Systems
         }
 
         [BurstCompile]
-        public void OnDestroy(ref SystemState state)
-        {
-        }
-
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             m_localTransformLookup.Update(ref state);
@@ -43,19 +38,23 @@ namespace Latios.Kinemation.Authoring.Systems
             new ClearJob().ScheduleParallel();
 
             var ecbAdd = new EntityCommandBuffer(state.WorldUpdateAllocator);
-            new ApplySkeletonsToBonesJob
+            new ApplySkeletonsToImportedSocketsJob
             {
-                componentTypesToAdd             = componentsToAdd,
-                ecb                             = ecbAdd.AsParallelWriter(),
-                skeletonReferenceLookup         = GetComponentLookup<BoneOwningSkeletonReference>(false),
-                copyLocalToParentFromBoneLookup = GetComponentLookup<Socket>(false),
-                parentLookup                    = m_parentROLookup,
-                transformAuthoringLookup        = GetComponentLookup<TransformAuthoring>(true),
-                localTransformLookup            = m_localTransformLookup
+                componentTypesToAdd      = componentsToAdd,
+                ecb                      = ecbAdd.AsParallelWriter(),
+                skeletonReferenceLookup  = GetComponentLookup<BoneOwningSkeletonReference>(false),
+                socketLookup             = GetComponentLookup<Socket>(false),
+                parentLookup             = m_parentROLookup,
+                transformAuthoringLookup = GetComponentLookup<TransformAuthoring>(true),
+                localTransformLookup     = m_localTransformLookup
+            }.ScheduleParallel();
+            new ApplySkeletonsToAuthoredSocketsJob
+            {
+                skeletonLookup = GetBufferLookup<OptimizedBoneTransform>(true)
             }.ScheduleParallel();
 
-            var ecbRemove                        = new EntityCommandBuffer(state.WorldUpdateAllocator);
-            new RemoveDisconnectedBonesJob { ecb = ecbRemove.AsParallelWriter(), componentTypesToRemove = componentsToAdd }.ScheduleParallel();
+            var ecbRemove                                  = new EntityCommandBuffer(state.WorldUpdateAllocator);
+            new RemoveDisconnectedImportedSocketsJob { ecb = ecbRemove.AsParallelWriter(), componentTypesToRemove = componentsToAdd }.ScheduleParallel();
 
             state.CompleteDependency();
 
@@ -65,6 +64,7 @@ namespace Latios.Kinemation.Authoring.Systems
 
         [WithOptions(EntityQueryOptions.IncludeDisabledEntities | EntityQueryOptions.IncludePrefab)]
         [WithAll(typeof(Socket))]
+        [WithNone(typeof(AuthoredSocket))]
         [BurstCompile]
         partial struct ClearJob : IJobEntity
         {
@@ -76,10 +76,10 @@ namespace Latios.Kinemation.Authoring.Systems
 
         [WithOptions(EntityQueryOptions.IncludeDisabledEntities | EntityQueryOptions.IncludePrefab)]
         [BurstCompile]
-        partial struct ApplySkeletonsToBonesJob : IJobEntity
+        partial struct ApplySkeletonsToImportedSocketsJob : IJobEntity
         {
             [NativeDisableParallelForRestriction] public LocalTransformQvvsReadWriteAspect.Lookup     localTransformLookup;
-            [NativeDisableParallelForRestriction] public ComponentLookup<Socket>                      copyLocalToParentFromBoneLookup;
+            [NativeDisableParallelForRestriction] public ComponentLookup<Socket>                      socketLookup;
             [NativeDisableParallelForRestriction] public ComponentLookup<BoneOwningSkeletonReference> skeletonReferenceLookup;
             [ReadOnly] public ParentReadOnlyAspect.Lookup                                             parentLookup;
             public EntityCommandBuffer.ParallelWriter                                                 ecb;
@@ -87,64 +87,87 @@ namespace Latios.Kinemation.Authoring.Systems
 
             [ReadOnly] public ComponentLookup<TransformAuthoring> transformAuthoringLookup;
 
-            public void Execute(Entity entity, [ChunkIndexInQuery] int chunkIndexInQuery, ref DynamicBuffer<ImportedSocket> bones,
+            public void Execute(Entity entity, [ChunkIndexInQuery] int chunkIndexInQuery, ref DynamicBuffer<ImportedSocket> importedSockets,
                                 in DynamicBuffer<OptimizedBoneTransform> boneTransforms)
             {
-                for (int i = 0; i < bones.Length; i++)
+                for (int i = 0; i < importedSockets.Length; i++)
                 {
-                    if (bones[i].boneIndex == 0)
+                    if (importedSockets[i].boneIndex == 0)
                     {
                         // If the socket is still parented to the root, it is not actually an imported socket.
-                        bones.RemoveAt(i);
+                        importedSockets.RemoveAt(i);
                         i--;
                     }
                 }
 
-                foreach (var bone in bones)
+                foreach (var socket in importedSockets)
                 {
-                    var localTransformAspect            = localTransformLookup[bone.boneEntity];
-                    localTransformAspect.localTransform = ComputeRootTransformOfBone(bone.boneIndex, in boneTransforms);
-                    if (copyLocalToParentFromBoneLookup.HasComponent(bone.boneEntity))
+                    var localTransformAspect            = localTransformLookup[socket.boneEntity];
+                    localTransformAspect.localTransform = ComputeRootTransformOfBone(socket.boneIndex, in boneTransforms);
+                    if (socketLookup.HasComponent(socket.boneEntity))
                     {
-                        skeletonReferenceLookup[bone.boneEntity]         = new BoneOwningSkeletonReference { skeletonRoot = entity };
-                        copyLocalToParentFromBoneLookup[bone.boneEntity]                                                  = new Socket {
-                            boneIndex                                                                                     = (short)bone.boneIndex
-                        };
+                        skeletonReferenceLookup[socket.boneEntity] = new BoneOwningSkeletonReference { skeletonRoot = entity };
+                        socketLookup[socket.boneEntity]                                                             = new Socket { boneIndex = (short)socket.boneIndex };
                     }
                     else
                     {
-                        ecb.AddComponent( chunkIndexInQuery, bone.boneEntity, componentTypesToAdd);
-                        ecb.SetComponent(chunkIndexInQuery, bone.boneEntity, new BoneOwningSkeletonReference { skeletonRoot = entity });
-                        ecb.SetComponent(chunkIndexInQuery, bone.boneEntity, new Socket { boneIndex                         = (short)bone.boneIndex });
+                        ecb.AddComponent(chunkIndexInQuery, socket.boneEntity, componentTypesToAdd);
+                        ecb.SetComponent(chunkIndexInQuery, socket.boneEntity, new BoneOwningSkeletonReference { skeletonRoot = entity });
+                        ecb.SetComponent(chunkIndexInQuery, socket.boneEntity, new Socket { boneIndex                         = (short)socket.boneIndex });
                     }
                 }
             }
+        }
 
-            TransformQvvs ComputeRootTransformOfBone(int index, in DynamicBuffer<OptimizedBoneTransform> transforms)
+        [WithAll(typeof(AuthoredSocket))]
+        [WithOptions(EntityQueryOptions.IncludeDisabledEntities | EntityQueryOptions.IncludePrefab)]
+        [BurstCompile]
+        partial struct ApplySkeletonsToAuthoredSocketsJob : IJobEntity
+        {
+            [ReadOnly] public BufferLookup<OptimizedBoneTransform> skeletonLookup;
+
+            public void Execute(LocalTransformQvvsReadWriteAspect localTransform, ref Socket socket, in BoneOwningSkeletonReference skeletonReference)
             {
-                var result = transforms[index].boneTransform;
-                var parent = result.worldIndex;
-                while (parent > 0)
+                if (!skeletonLookup.TryGetBuffer(skeletonReference.skeletonRoot, out var bones))
                 {
-                    var parentTransform = transforms[parent].boneTransform;
-                    parent              = parentTransform.worldIndex;
-                    result              = qvvs.mul(parentTransform, result);
+                    UnityEngine.Debug.LogError($"A socket targets {skeletonReference.skeletonRoot.entity.ToFixedString()} which does not have an OptimizedBoneTransform buffer.");
+                    return;
                 }
-                return result;
+                if (bones.Length <= socket.boneIndex)
+                {
+                    UnityEngine.Debug.LogError(
+                        $"A socket targets index {socket.boneIndex} of skeleton {skeletonReference.skeletonRoot.entity.ToFixedString()} which has only {bones.Length} bones.");
+                    socket.boneIndex = 0;
+                }
+                localTransform.localTransform = ComputeRootTransformOfBone(socket.boneIndex, in bones);
             }
+        }
+
+        static TransformQvvs ComputeRootTransformOfBone(int index, in DynamicBuffer<OptimizedBoneTransform> transforms)
+        {
+            var result = transforms[index].boneTransform;
+            var parent = result.worldIndex;
+            while (parent > 0)
+            {
+                var parentTransform = transforms[parent].boneTransform;
+                parent              = parentTransform.worldIndex;
+                result              = qvvs.mul(parentTransform, result);
+            }
+            return result;
         }
 
         [WithOptions(EntityQueryOptions.IncludeDisabledEntities | EntityQueryOptions.IncludePrefab)]
         [WithAll(typeof(Socket))]
+        [WithNone(typeof(AuthoredSocket))]
         [BurstCompile]
-        partial struct RemoveDisconnectedBonesJob : IJobEntity
+        partial struct RemoveDisconnectedImportedSocketsJob : IJobEntity
         {
             public EntityCommandBuffer.ParallelWriter ecb;
             public ComponentTypeSet                   componentTypesToRemove;
 
-            public void Execute(Entity entity, [ChunkIndexInQuery] int chunkIndexInQuery, ref BoneOwningSkeletonReference boneReference)
+            public void Execute(Entity entity, [ChunkIndexInQuery] int chunkIndexInQuery, ref BoneOwningSkeletonReference skeletonReference)
             {
-                if (boneReference.skeletonRoot == Entity.Null)
+                if (skeletonReference.skeletonRoot == Entity.Null)
                     ecb.RemoveComponent(chunkIndexInQuery, entity, componentTypesToRemove);
             }
         }
