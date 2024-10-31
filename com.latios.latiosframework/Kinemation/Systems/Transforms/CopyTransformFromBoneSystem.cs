@@ -24,7 +24,7 @@ namespace Latios.Kinemation.Systems
 
         public void OnCreate(ref SystemState state)
         {
-            m_query           = state.Fluent().With<LocalTransform>(false).With<CopyLocalToParentFromBone>(true).With<BoneOwningSkeletonReference>(true).Build();
+            m_query           = state.Fluent().With<LocalTransform>(false).With<Socket>(true).With<BoneOwningSkeletonReference>(true).Build();
             m_transformHandle = new TransformAspect.TypeHandle(ref state);
         }
 
@@ -34,7 +34,7 @@ namespace Latios.Kinemation.Systems
             m_transformHandle.Update(ref state);
             state.Dependency = new CopyFromBoneJob
             {
-                fromBoneHandle    = GetComponentTypeHandle<CopyLocalToParentFromBone>(true),
+                fromBoneHandle    = GetComponentTypeHandle<Socket>(true),
                 skeletonHandle    = GetComponentTypeHandle<BoneOwningSkeletonReference>(true),
                 obtLookup         = GetBufferLookup<OptimizedBoneTransform>(true),
                 stateLookup       = GetComponentLookup<OptimizedSkeletonState>(true),
@@ -50,7 +50,7 @@ namespace Latios.Kinemation.Systems
         [BurstCompile]
         struct CopyFromBoneJob : IJobChunk
         {
-            [ReadOnly] public ComponentTypeHandle<CopyLocalToParentFromBone>   fromBoneHandle;
+            [ReadOnly] public ComponentTypeHandle<Socket>   fromBoneHandle;
             [ReadOnly] public ComponentTypeHandle<BoneOwningSkeletonReference> skeletonHandle;
             [ReadOnly] public BufferLookup<OptimizedBoneTransform>             obtLookup;
             [ReadOnly] public ComponentLookup<OptimizedSkeletonState>          stateLookup;

@@ -14,7 +14,7 @@ namespace Latios.Kinemation.Authoring.Systems
     [RequireMatchingQueriesForUpdate]
     [DisableAutoCreation]
     [BurstCompile]
-    public partial struct SetupExportedBonesSystem : ISystem
+    public partial struct SetupSocketsSystem : ISystem
     {
         LocalTransformQvvsReadWriteAspect.Lookup m_localTransformLookup;
         ParentReadOnlyAspect.Lookup              m_parentROLookup;
@@ -37,7 +37,7 @@ namespace Latios.Kinemation.Authoring.Systems
             m_localTransformLookup.Update(ref state);
             m_parentROLookup.Update(ref state);
 
-            var componentsToAdd = new ComponentTypeSet(ComponentType.ReadWrite<CopyLocalToParentFromBone>(),
+            var componentsToAdd = new ComponentTypeSet(ComponentType.ReadWrite<Socket>(),
                                                        ComponentType.ReadWrite<BoneOwningSkeletonReference>());
 
             new ClearJob().ScheduleParallel();
@@ -48,7 +48,7 @@ namespace Latios.Kinemation.Authoring.Systems
                 componentTypesToAdd             = componentsToAdd,
                 ecb                             = ecbAdd.AsParallelWriter(),
                 skeletonReferenceLookup         = GetComponentLookup<BoneOwningSkeletonReference>(false),
-                copyLocalToParentFromBoneLookup = GetComponentLookup<CopyLocalToParentFromBone>(false),
+                copyLocalToParentFromBoneLookup = GetComponentLookup<Socket>(false),
                 parentLookup                    = m_parentROLookup,
                 transformAuthoringLookup        = GetComponentLookup<TransformAuthoring>(true),
                 localTransformLookup            = m_localTransformLookup
@@ -64,7 +64,7 @@ namespace Latios.Kinemation.Authoring.Systems
         }
 
         [WithOptions(EntityQueryOptions.IncludeDisabledEntities | EntityQueryOptions.IncludePrefab)]
-        [WithAll(typeof(CopyLocalToParentFromBone))]
+        [WithAll(typeof(Socket))]
         [BurstCompile]
         partial struct ClearJob : IJobEntity
         {
@@ -79,7 +79,7 @@ namespace Latios.Kinemation.Authoring.Systems
         partial struct ApplySkeletonsToBonesJob : IJobEntity
         {
             [NativeDisableParallelForRestriction] public LocalTransformQvvsReadWriteAspect.Lookup     localTransformLookup;
-            [NativeDisableParallelForRestriction] public ComponentLookup<CopyLocalToParentFromBone>   copyLocalToParentFromBoneLookup;
+            [NativeDisableParallelForRestriction] public ComponentLookup<Socket>                      copyLocalToParentFromBoneLookup;
             [NativeDisableParallelForRestriction] public ComponentLookup<BoneOwningSkeletonReference> skeletonReferenceLookup;
             [ReadOnly] public ParentReadOnlyAspect.Lookup                                             parentLookup;
             public EntityCommandBuffer.ParallelWriter                                                 ecb;
@@ -87,14 +87,14 @@ namespace Latios.Kinemation.Authoring.Systems
 
             [ReadOnly] public ComponentLookup<TransformAuthoring> transformAuthoringLookup;
 
-            public void Execute(Entity entity, [ChunkIndexInQuery] int chunkIndexInQuery, ref DynamicBuffer<OptimizedSkeletonExportedBone> bones,
+            public void Execute(Entity entity, [ChunkIndexInQuery] int chunkIndexInQuery, ref DynamicBuffer<ImportedSocket> bones,
                                 in DynamicBuffer<OptimizedBoneTransform> boneTransforms)
             {
                 for (int i = 0; i < bones.Length; i++)
                 {
                     if (bones[i].boneIndex == 0)
                     {
-                        // If the exported bone is still parented to the root, it is not actually an exported bone.
+                        // If the socket is still parented to the root, it is not actually an imported socket.
                         bones.RemoveAt(i);
                         i--;
                     }
@@ -107,7 +107,7 @@ namespace Latios.Kinemation.Authoring.Systems
                     if (copyLocalToParentFromBoneLookup.HasComponent(bone.boneEntity))
                     {
                         skeletonReferenceLookup[bone.boneEntity]         = new BoneOwningSkeletonReference { skeletonRoot = entity };
-                        copyLocalToParentFromBoneLookup[bone.boneEntity]                                                  = new CopyLocalToParentFromBone {
+                        copyLocalToParentFromBoneLookup[bone.boneEntity]                                                  = new Socket {
                             boneIndex                                                                                     = (short)bone.boneIndex
                         };
                     }
@@ -115,7 +115,7 @@ namespace Latios.Kinemation.Authoring.Systems
                     {
                         ecb.AddComponent( chunkIndexInQuery, bone.boneEntity, componentTypesToAdd);
                         ecb.SetComponent(chunkIndexInQuery, bone.boneEntity, new BoneOwningSkeletonReference { skeletonRoot = entity });
-                        ecb.SetComponent(chunkIndexInQuery, bone.boneEntity, new CopyLocalToParentFromBone { boneIndex      = (short)bone.boneIndex });
+                        ecb.SetComponent(chunkIndexInQuery, bone.boneEntity, new Socket { boneIndex                         = (short)bone.boneIndex });
                     }
                 }
             }
@@ -135,7 +135,7 @@ namespace Latios.Kinemation.Authoring.Systems
         }
 
         [WithOptions(EntityQueryOptions.IncludeDisabledEntities | EntityQueryOptions.IncludePrefab)]
-        [WithAll(typeof(CopyLocalToParentFromBone))]
+        [WithAll(typeof(Socket))]
         [BurstCompile]
         partial struct RemoveDisconnectedBonesJob : IJobEntity
         {
