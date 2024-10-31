@@ -49,7 +49,6 @@ namespace Latios.LifeFX.Systems
             }
         }
 
-        [BurstCompile]
         public void OnDestroy(ref SystemState state)
         {
             state.CompleteDependency();
