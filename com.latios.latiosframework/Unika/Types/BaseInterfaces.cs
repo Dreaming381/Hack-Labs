@@ -5,6 +5,9 @@ using Unity.Mathematics;
 
 namespace Latios.Unika
 {
+    /// <summary>
+    /// A base interface all resolved script types implement to facilitate a suite of extension methods
+    /// </summary>
     public interface IScriptExtensionsApi
     {
         public Entity entity { get; }
@@ -23,6 +26,9 @@ namespace Latios.Unika
         public ScriptRef ToRef();
     }
 
+    /// <summary>
+    /// A base interface for typed resolved scripts (either concrete types or interfaces) to faciliate a suite of extension methods
+    /// </summary>
     public interface IScriptTypedExtensionsApi : IScriptExtensionsApi
     {
         // Should be explicit implementations only

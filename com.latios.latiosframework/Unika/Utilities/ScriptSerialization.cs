@@ -7,8 +7,20 @@ using Unity.Mathematics;
 
 namespace Latios.Unika
 {
+    /// <summary>
+    /// A static class which contains a collection of utility methods for serializing and deserializing scripts.
+    /// Since scripts store their data in untyped DynamicBuffer arrays intermingled, Unity does not know how to naturally serialize
+    /// and deserialize them. If you do not do any custom serialization (save systems or networking), then you only need to worry about
+    /// entity serialization, and only if you instantiate non-prefabs. Otherwise, Unika automatically handles this for baking and subscene loading.
+    /// </summary>
     public static class ScriptSerialization
     {
+        /// <summary>
+        /// Gets a unique hash for the sequence of scripts stored on the entity, to ensure serialized data can be deserialized correctly
+        /// </summary>
+        /// <param name="scripts">The scripts buffer to compute the hash for. The field values of the script do not matter,
+        /// only the script types and order matters, and is evaluated using a method that is safe across sessions</param>
+        /// <returns>A 128-bit hashcode of the script sequence</returns>
         public static uint4 ComputeStructureHash(NativeArray<UnikaScripts> scripts)
         {
             if (scripts.Length == 0)
@@ -26,6 +38,11 @@ namespace Latios.Unika
             return state.DigestHash128();
         }
 
+        /// <summary>
+        /// Serialize entities in all of the scripts for saving, moving between worlds, or instantiating
+        /// </summary>
+        /// <param name="scripts">The scripts to serialize</param>
+        /// <param name="entityRefs">The buffer to store the serialized entities which can withstand remapping</param>
         public static unsafe void SerializeEntities(in NativeArray<UnikaScripts> scripts, ref DynamicBuffer<UnikaSerializedEntityReference> entityRefs)
         {
             entityRefs.Clear();
@@ -49,6 +66,11 @@ namespace Latios.Unika
             }
         }
 
+        /// <summary>
+        /// Deserialize entities for all the scripts upon loading, after moving between worlds, or after instantiating
+        /// </summary>
+        /// <param name="scripts">The scripts to deserialize, which must maintain the same script type sequence as when it was serialized</param>
+        /// <param name="entityRefs">The buffer that contains the serialized entities</param>
         public static unsafe void DeserializeEntities(ref NativeArray<UnikaScripts> scripts, in NativeArray<UnikaSerializedEntityReference> entityRefs)
         {
             if (scripts.Length == 0)
@@ -61,6 +83,11 @@ namespace Latios.Unika
             }
         }
 
+        /// <summary>
+        /// Serialize blob asset references in all the scripts for saving
+        /// </summary>
+        /// <param name="scripts">The scripts to serialize</param>
+        /// <param name="blobRefs">The buffer to store the serialized blob asset references</param>
         public static unsafe void SerializeBlobs(in NativeArray<UnikaScripts> scripts, ref DynamicBuffer<UnikaSerializedBlobReference> blobRefs)
         {
             blobRefs.Clear();
@@ -84,6 +111,11 @@ namespace Latios.Unika
             }
         }
 
+        /// <summary>
+        /// Deserialize blob asset references in all the scripts after loading
+        /// </summary>
+        /// <param name="scripts">The scripts to deserialize, which must maintain the same script type sequence as when it was serialized</param>
+        /// <param name="blobRefs">The buffer that contains the serialized blob asset references</param>
         public static unsafe void DeserializeBlobs(ref NativeArray<UnikaScripts> scripts, in NativeArray<UnikaSerializedBlobReference> blobRefs)
         {
             if (scripts.Length == 0)
@@ -96,6 +128,11 @@ namespace Latios.Unika
             }
         }
 
+        /// <summary>
+        /// Serialize asset references in all the scripts for saving
+        /// </summary>
+        /// <param name="scripts">The scripts to serialize</param>
+        /// <param name="assetRefs">The buffer to store the serialized asset references</param>
         public static unsafe void SerializeAssets(in NativeArray<UnikaScripts> scripts, ref DynamicBuffer<UnikaSerializedAssetReference> assetRefs)
         {
             assetRefs.Clear();
@@ -119,6 +156,11 @@ namespace Latios.Unika
             }
         }
 
+        /// <summary>
+        /// Deserialize asset references in all the scripts after loading
+        /// </summary>
+        /// <param name="scripts">The scripts to deserialize, which must maintain the same script type sequence as when it was serialized</param>
+        /// <param name="assetRefs">The buffer that contains the serialized asset references</param>
         public static unsafe void DeserializeAssets(ref NativeArray<UnikaScripts> scripts, in NativeArray<UnikaSerializedAssetReference> assetRefs)
         {
             if (scripts.Length == 0)
@@ -131,6 +173,11 @@ namespace Latios.Unika
             }
         }
 
+        /// <summary>
+        /// Serialize UnityEngine.Object references in all the scripts for saving
+        /// </summary>
+        /// <param name="scripts">The scripts to serialize</param>
+        /// <param name="objRefs">The buffer to store the serialized UnityEngine.Object references</param>
         public static unsafe void SerializeObjects(in NativeArray<UnikaScripts> scripts, ref DynamicBuffer<UnikaSerializedObjectReference> objRefs)
         {
             objRefs.Clear();
@@ -154,6 +201,11 @@ namespace Latios.Unika
             }
         }
 
+        /// <summary>
+        /// Deserialize UnityEngine.Object references in all the scripts after loading
+        /// </summary>
+        /// <param name="scripts">The scripts to deserialize, which must maintain the same script type sequence as when it was serialized</param>
+        /// <param name="objRefs">The buffer that contains the serialized UnityEngine.Object references</param>
         public static unsafe void DeserializeObjects(ref NativeArray<UnikaScripts> scripts, in NativeArray<UnikaSerializedObjectReference> objRefs)
         {
             if (scripts.Length == 0)
@@ -166,6 +218,12 @@ namespace Latios.Unika
             }
         }
 
+        /// <summary>
+        /// Deserialize Unika script types that were created in a different session, and thus had different runtime ID values associated with each script type
+        /// </summary>
+        /// <param name="scripts">The scripts to deserialize</param>
+        /// <param name="serializedTypeIds">The stable hash of each runtime ID from the previous session the scripts were saved from</param>
+        /// <exception cref="System.InvalidOperationException"></exception>
         public static unsafe void DeserializeScriptTypes(ref NativeArray<UnikaScripts> scripts, in UnikaSerializedTypeIds serializedTypeIds)
         {
             ref var hashes = ref serializedTypeIds.blob.Value.stableHashBySerializedTypeId;

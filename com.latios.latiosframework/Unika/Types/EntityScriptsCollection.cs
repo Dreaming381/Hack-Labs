@@ -7,17 +7,32 @@ using Unity.Mathematics;
 
 namespace Latios.Unika
 {
+    /// <summary>
+    /// Contains all scripts attached to an entity which can be iterated over. This is invalidated by a ScriptStructuralChange operation.
+    /// </summary>
     public struct EntityScriptCollection : IScriptResolverBase
     {
         internal NativeArray<ScriptHeader> m_buffer;
         internal Entity                    m_entity;
 
+        /// <summary>
+        /// The entity these scripts belong to
+        /// </summary>
         public Entity entity => m_entity;
 
+        /// <summary>
+        /// The number of scripts belonging to this entity.
+        /// </summary>
         public int length => m_buffer.Length > 0 ? m_buffer[0].instanceCount : 0;
 
+        /// <summary>
+        /// Returns true if this entity has no scripts.
+        /// </summary>
         public bool isEmpty => m_buffer.Length == 0;
 
+        /// <summary>
+        /// Retrives a resolved untyped script at the specified index
+        /// </summary>
         public Script this[int index]
         {
             get
@@ -34,13 +49,17 @@ namespace Latios.Unika
             }
         }
 
-        public bool TryGet(Entity entity, out EntityScriptCollection allScripts, bool throwSafetyErrorIfNotFound = false)
+        bool IScriptResolverBase.TryGet(Entity entity, out EntityScriptCollection allScripts, bool throwSafetyErrorIfNotFound)
         {
             // Defer all validation to the next stage, since the error messages will be identical.
             allScripts = this;
             return true;
         }
 
+        /// <summary>
+        /// Creates a NativeArray of resolved script handles
+        /// </summary>
+        /// <param name="allocator">The allocator that should be used to create the NativeArray</param>
         public NativeArray<Script> ToNativeArray(AllocatorManager.AllocatorHandle allocator)
         {
             var result = CollectionHelper.CreateNativeArray<Script>(length, allocator, NativeArrayOptions.UninitializedMemory);
@@ -53,6 +72,9 @@ namespace Latios.Unika
             return result;
         }
 
+        /// <summary>
+        /// Gets an iterator for all the scripts on this entity
+        /// </summary>
         public Enumerator GetEnumerator() => new Enumerator(this);
 
         public struct Enumerator
@@ -99,7 +121,12 @@ namespace Latios.Unika
 
     public static class ScriptsDynamicBufferExtensions
     {
-        // Note: The wrong m_entity here could lead to crashes or other bad behavior
+        /// <summary>
+        /// Gets the EntityScriptCollection derived from this script buffer and the passed in entity.
+        /// WARNING: Passing a different entity than the one this buffer belongs to will result in crashes or memory corruption.
+        /// </summary>
+        /// <param name="entity">The entity this buffer belongs to</param>
+        /// <returns>The EntityScriptCollection which can be used to index scripts within the buffer</returns>
         public static EntityScriptCollection AllScripts(this DynamicBuffer<UnikaScripts> buffer, Entity entity)
         {
             return new EntityScriptCollection
@@ -109,6 +136,12 @@ namespace Latios.Unika
             };
         }
 
+        /// <summary>
+        /// Gets the EntityScriptCollection derived from this script buffer and the passed in entity.
+        /// WARNING: Passing a different entity than the one this buffer belongs to will result in crashes or memory corruption.
+        /// </summary>
+        /// <param name="entity">The entity this buffer belongs to</param>
+        /// <returns>The EntityScriptCollection which can be used to index scripts within the buffer</returns>
         public static EntityScriptCollection AllScripts(this NativeArray<UnikaScripts> buffer, Entity entity)
         {
             return new EntityScriptCollection
