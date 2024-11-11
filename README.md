@@ -65,3 +65,7 @@ Revival of the Kinemation-Skinning-Prototype project, exploring EWBIK full-body 
 ### Lab-C2
 
 Conversion of Unity’s Particle Pack to native ECS with Mimic.Shuriken. Also contains VFX Graph experiments.
+
+### Lab-C3
+
+Unika experimental mechanics.
