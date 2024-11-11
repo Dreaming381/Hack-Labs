@@ -25,7 +25,7 @@ namespace Latios.Unika
                                         bool userFlagA = false,
                                         bool userFlagB = false) where T : unmanaged, IUnikaScript, IUnikaScriptGen
         {
-            var scriptType  = ScriptTypeInfoManager.GetScriptRuntimeId<T>().runtimeId;
+            var scriptType  = ScriptTypeInfoManager.GetScriptRuntimeIdAndMask<T>().runtimeId;
             var index       = ScriptStructuralChangeInternal.AllocateScript(ref scriptsBuffer, scriptType);
             var result      = scriptsBuffer.AllScripts(default)[index];
             var typedResult = new Script<T>

@@ -100,7 +100,7 @@ namespace Latios.Unika.Authoring
         public unsafe void Assign<T>(ref T script) where T : unmanaged, IUnikaScript, IUnikaScriptGen
         {
             var scriptSize = UnsafeUtility.SizeOf<T>();
-            scriptType     = ScriptTypeInfoManager.GetScriptRuntimeId<T>().runtimeId;
+            scriptType     = ScriptTypeInfoManager.GetScriptRuntimeIdAndMask<T>().runtimeId;
             scriptPayload  = new NativeArray<byte>(scriptSize, Allocator.Temp);
             UnsafeUtility.MemCpy(scriptPayload.GetUnsafePtr(), UnsafeUtility.AddressOf(ref script), scriptSize);
         }
@@ -136,7 +136,7 @@ namespace Latios.Unika.Authoring
                     m_cachedHeaderIndex = -1,
                     m_instanceId        = 0
                 },
-                scriptType = ScriptTypeInfoManager.GetScriptRuntimeId<T>().runtimeId,
+                scriptType = ScriptTypeInfoManager.GetScriptRuntimeIdAndMask<T>().runtimeId,
                 userFlagA  = userFlagA,
                 userByte   = userByte,
                 userFlagB  = userFlagB

@@ -144,7 +144,7 @@ namespace Latios.Unika
             return ScriptInterfaceInfoLookup<T>.s_runtimeTypeIndex.Data;
         }
 
-        public static IdAndMask GetScriptRuntimeId<T>() where T : unmanaged, IUnikaScript, IUnikaScriptGen
+        public static IdAndMask GetScriptRuntimeIdAndMask<T>() where T : unmanaged, IUnikaScript, IUnikaScriptGen
         {
             return ScriptTypeInfoLookup<T>.s_runtimeTypeIndex.Data;
         }

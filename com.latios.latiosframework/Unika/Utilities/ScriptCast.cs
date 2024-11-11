@@ -16,13 +16,13 @@ namespace Latios.Unika
         /// </summary>
         public static bool IsScript<T>(this in Script script) where T : unmanaged, IUnikaScript, IUnikaScriptGen
         {
-            return script.m_headerRO.scriptType == ScriptTypeInfoManager.GetScriptRuntimeId<T>().runtimeId;
+            return script.m_headerRO.scriptType == ScriptTypeInfoManager.GetScriptRuntimeIdAndMask<T>().runtimeId;
         }
 
         /// <summary>
         /// Returns true if the script implements the specified Unika interface
         /// </summary>
-        public static bool IsInterface<T>(this in Script script) where T : unmanaged, IUnikaInterface, IUnikaInterfaceGen
+        public static bool IsInterface<T>(this in Script script) where T : IUnikaInterface, IUnikaInterfaceGen
         {
             var idAndMask = ScriptTypeInfoManager.GetInterfaceRuntimeIdAndMask<T>();
             if ((script.m_headerRO.bloomMask & idAndMask.bloomMask) == idAndMask.bloomMask)

@@ -171,6 +171,11 @@ namespace Latios.Unika
 
         bool IScriptTypedExtensionsApi.TryCastInit(in Script script) => ScriptCast.TryCast(in script, out this);
 
+        IScriptTypedExtensionsApi.WrappedIdAndMask IScriptTypedExtensionsApi.GetIdAndMask() => new IScriptTypedExtensionsApi.WrappedIdAndMask
+        {
+            idAndMask = ScriptTypeInfoManager.GetScriptRuntimeIdAndMask<T>()
+        };
+
         /// <summary>
         /// Gets an untyped but resolved reference to this script
         /// </summary>

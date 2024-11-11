@@ -56,6 +56,10 @@ namespace Latios.Unika.InternalSourceGen
                 }
                 return false;
             }
+
+            WrappedIdAndMask IScriptTypedExtensionsApi.GetIdAndMask() => new WrappedIdAndMask {
+                idAndMask = ScriptTypeInfoManager.GetInterfaceRuntimeIdAndMask<TInterface>()
+            };
         }
 
         public struct InterfaceData
@@ -123,7 +127,7 @@ namespace Latios.Unika.InternalSourceGen
             }
             ScriptTypeInfoManager.InitializeScriptType<T>(idAndMasks);
 
-            var scriptId = ScriptTypeInfoManager.GetScriptRuntimeId<T>().runtimeId;
+            var scriptId = ScriptTypeInfoManager.GetScriptRuntimeIdAndMask<T>().runtimeId;
             foreach (var i in interfacesImplemented)
             {
                 ScriptVTable.Add(scriptId, i.runtimeId, i.functionPtr);
@@ -354,6 +358,11 @@ namespace Latios.Unika.InternalSourceGen
         public Script ToScript()
         {
             throw new System.NotImplementedException();
+        }
+
+        IScriptTypedExtensionsApi.WrappedIdAndMask IScriptTypedExtensionsApi.GetIdAndMask()
+        {
+            throw new NotImplementedException();
         }
     }
 

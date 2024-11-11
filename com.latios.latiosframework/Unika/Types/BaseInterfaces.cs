@@ -37,6 +37,13 @@ namespace Latios.Unika
         bool Is(in Script script);
 
         bool TryCastInit(in Script script);
+
+        public struct WrappedIdAndMask
+        {
+            internal ScriptTypeInfoManager.IdAndMask idAndMask;
+        }
+
+        public WrappedIdAndMask GetIdAndMask();
     }
 
     // This interface is to mark Unika interfaces that have been processed by source generators.
