@@ -169,7 +169,12 @@ namespace Latios.Unika
 
         bool IScriptTypedExtensionsApi.Is(in Script script) => ScriptCast.IsScript<T>(in script);
 
-        bool IScriptTypedExtensionsApi.TryCastInit(in Script script) => ScriptCast.TryCast(in script, out this);
+        bool IScriptTypedExtensionsApi.TryCastInit(in Script script, IScriptTypedExtensionsApi.WrappedThisPtr thisPtr)
+        {
+            var result = ScriptCast.TryCast(in script, out this);
+            UnsafeUtility.CopyStructureToPtr(ref this, thisPtr.ptr);
+            return result;
+        }
 
         IScriptTypedExtensionsApi.WrappedIdAndMask IScriptTypedExtensionsApi.GetIdAndMask() => new IScriptTypedExtensionsApi.WrappedIdAndMask
         {

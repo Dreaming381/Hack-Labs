@@ -15,7 +15,7 @@ namespace Latios.Unika.Authoring
     [RequireComponent(typeof(UnikaScriptBufferAuthoring))]
     public abstract class UnikaScriptAuthoringBase : MonoBehaviour
     {
-        private protected static List<UnikaScriptAuthoringBase> m_scriptsCache;
+        private protected static List<UnikaScriptAuthoringBase> m_scriptsCache = new List<UnikaScriptAuthoringBase>();
 
         /// <summary>
         /// Implement this method to determine whether this authoring component will produce a valid script.
@@ -79,6 +79,10 @@ namespace Latios.Unika.Authoring
     {
         internal NativeArray<byte> scriptPayload;
         internal int               scriptType;
+        /// <summary>
+        /// The TransformUsageFlags that should be added to the entity containing all the scripts.
+        /// </summary>
+        public TransformUsageFlags transformUsageFlags;
         /// <summary>
         /// The userByte the script will initially have
         /// </summary>
@@ -193,6 +197,7 @@ namespace Latios.Unika.Authoring
                 throw new System.InvalidOperationException(
                     $"The AuthoredScriptAssignment was left unassigned for object {authoring.name}. Please fix this issue before attempting to enter play mode, or else Unity may crash.");
 
+            GetEntity(assignment.transformUsageFlags);
             var bytes = AddBuffer<BakedScriptByte>(entity).Reinterpret<byte>();
             bytes.AddRange(assignment.scriptPayload);
             AddComponent(entity, new BakedScriptMetadata

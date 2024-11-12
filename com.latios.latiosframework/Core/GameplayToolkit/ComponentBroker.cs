@@ -107,41 +107,43 @@ namespace Latios
         /// <typeparam name="T4">The fifth component type to add</typeparam>
         /// <param name="readOnly">Whether the components should be read-only. If false, they will be read-write.</param>
         public ComponentBrokerBuilder With<T0, T1, T2, T3, T4>(bool readOnly = false) => With<T0, T1>(readOnly).With<T2, T3, T4>(readOnly);
-        /// <summary>
-        /// Adds the component types required by the aspect to the builder, using the same read-only and read-write
-        /// requirements the aspect specifies
-        /// </summary>
-        /// <typeparam name="T">The aspect type to add</typeparam>
-        public ComponentBrokerBuilder WithAspect<T>() where T : unmanaged, IAspect, IAspectCreate<T>
-        {
-            aspectCache.Clear();
-            default(T).AddComponentRequirementsTo(ref aspectCache);
-            foreach (var c in aspectCache)
-            {
-                With(c);
-            }
-            return this;
-        }
-        /// <summary>
-        /// Adds the component types required by the aspects to the builder, using the same read-only and read-write
-        /// requirements the aspects specify
-        /// </summary>
-        /// <typeparam name="T0">The first aspect type to add</typeparam>
-        /// <typeparam name="T1">The second aspect type to add</typeparam>
-        public ComponentBrokerBuilder WithAspect<T0, T1>() where T0 : unmanaged, IAspect, IAspectCreate<T0>
-            where T1 : unmanaged, IAspect, IAspectCreate<T1> =>
-        WithAspect<T0>().WithAspect<T1>();
-        /// <summary>
-        /// Adds the component types required by the aspects to the builder, using the same read-only and read-write
-        /// requirements the aspects specify
-        /// </summary>
-        /// <typeparam name="T0">The first aspect type to add</typeparam>
-        /// <typeparam name="T1">The second aspect type to add</typeparam>
-        /// <typeparam name="T2">The third aspect type to add</typeparam>
-        public ComponentBrokerBuilder WithAspect<T0, T1, T2>() where T0 : unmanaged, IAspect, IAspectCreate<T0>
-            where T1 : unmanaged, IAspect, IAspectCreate<T1>
-            where T2 : unmanaged, IAspect, IAspectCreate<T2> =>
-        WithAspect<T0>().WithAspect<T1>().WithAspect<T2>();
+
+        // Todo: These only give us required components (which are kinda buggy anyways). We need something better, which would probably require source generation or reflection.
+        // /// <summary>
+        // /// Adds the component types required by the aspect to the builder, using the same read-only and read-write
+        // /// requirements the aspect specifies
+        // /// </summary>
+        // /// <typeparam name="T">The aspect type to add</typeparam>
+        // public ComponentBrokerBuilder WithAspect<T>() where T : unmanaged, IAspect, IAspectCreate<T>
+        // {
+        //     aspectCache.Clear();
+        //     default(T).AddComponentRequirementsTo(ref aspectCache);
+        //     foreach (var c in aspectCache)
+        //     {
+        //         With(c);
+        //     }
+        //     return this;
+        // }
+        // /// <summary>
+        // /// Adds the component types required by the aspects to the builder, using the same read-only and read-write
+        // /// requirements the aspects specify
+        // /// </summary>
+        // /// <typeparam name="T0">The first aspect type to add</typeparam>
+        // /// <typeparam name="T1">The second aspect type to add</typeparam>
+        // public ComponentBrokerBuilder WithAspect<T0, T1>() where T0 : unmanaged, IAspect, IAspectCreate<T0>
+        //     where T1 : unmanaged, IAspect, IAspectCreate<T1> =>
+        // WithAspect<T0>().WithAspect<T1>();
+        // /// <summary>
+        // /// Adds the component types required by the aspects to the builder, using the same read-only and read-write
+        // /// requirements the aspects specify
+        // /// </summary>
+        // /// <typeparam name="T0">The first aspect type to add</typeparam>
+        // /// <typeparam name="T1">The second aspect type to add</typeparam>
+        // /// <typeparam name="T2">The third aspect type to add</typeparam>
+        // public ComponentBrokerBuilder WithAspect<T0, T1, T2>() where T0 : unmanaged, IAspect, IAspectCreate<T0>
+        //     where T1 : unmanaged, IAspect, IAspectCreate<T1>
+        //     where T2 : unmanaged, IAspect, IAspectCreate<T2> =>
+        // WithAspect<T0>().WithAspect<T1>().WithAspect<T2>();
         /// <summary>
         /// Finalize and construct the ComponentBroker
         /// </summary>
@@ -685,6 +687,12 @@ namespace Latios
                             cCountRO++;
                         }
                     }
+
+                    while (sCount < 16)
+                    {
+                        s0Ptr[sCount] = state.GetDynamicSharedComponentTypeHandle(ComponentType.ReadOnly<DummySharedComponent>());
+                        sCount++;
+                    }
                 }
             }
             readWriteCount = cCountRW;
@@ -728,11 +736,13 @@ namespace Latios
         #endregion
 
         #region Fields
+        internal struct DummySharedComponent : ISharedComponentData { public byte dummyValue; }
+
         internal struct DynamicIndex
         {
             byte packed;
             public int index => packed;
-            public bool isValid => packed == 0xff;
+            public bool isValid => packed != 0xff;
             public DynamicIndex(int index)
             {
                 packed = (byte)index;
@@ -1066,8 +1076,12 @@ namespace Latios
         [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
         internal void CheckTypeIndexIsInComponentList(int index)
         {
-            if (index >= handleIndices.Length || !handleIndices[index].isValid)
-                throw new ArgumentOutOfRangeException("The specified component type does not exist in this ComponentBroker");
+            if (index >= handleIndices.Length)
+                throw new ArgumentOutOfRangeException(
+                    $"The specified component type does not exist in this ComponentBroker. Component index: {index}, handleIndices.Length: {handleIndices.Length}");
+            if (!handleIndices[index].isValid)
+                throw new ArgumentOutOfRangeException(
+                    $"The specified component type does not exist in this ComponentBroker. Component index: {index}, handleIndices value: {handleIndices[index].index}");
         }
 
         [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]

@@ -38,7 +38,7 @@ namespace Latios.Unika.InternalSourceGen
                 return false;
             }
 
-            bool IScriptTypedExtensionsApi.TryCastInit(in Script script)
+            unsafe bool IScriptTypedExtensionsApi.TryCastInit(in Script script, WrappedThisPtr thisPtr)
             {
                 var idAndMask = ScriptTypeInfoManager.GetInterfaceRuntimeIdAndMask<TInterface>();
                 if ((script.m_headerRO.bloomMask & idAndMask.bloomMask) == idAndMask.bloomMask)
@@ -50,14 +50,15 @@ namespace Latios.Unika.InternalSourceGen
                             functionPointer = functionPtr,
                             script          = script
                         };
-                        assign = UnsafeUtility.As<InterfaceData, TInterfaceStruct>(ref result);
+                        UnsafeUtility.CopyStructureToPtr(ref result, thisPtr.ptr);
                         return true;
                     }
                 }
                 return false;
             }
 
-            WrappedIdAndMask IScriptTypedExtensionsApi.GetIdAndMask() => new WrappedIdAndMask {
+            WrappedIdAndMask IScriptTypedExtensionsApi.GetIdAndMask() => new WrappedIdAndMask
+            {
                 idAndMask = ScriptTypeInfoManager.GetInterfaceRuntimeIdAndMask<TInterface>()
             };
         }
@@ -160,8 +161,7 @@ namespace Latios.Unika.InternalSourceGen
         {
             if (ScriptCast.TryResolve(ref src, in allScripts, out var script))
             {
-                dst = default;
-                return dst.TryCastInit(in script);
+                return script.TryCast(out dst);
             }
             dst = default;
             return false;
@@ -179,8 +179,7 @@ namespace Latios.Unika.InternalSourceGen
         {
             if (ScriptCast.TryResolve(ref src, ref resolver, out var script))
             {
-                dst = default;
-                return dst.TryCastInit(in script);
+                return script.TryCast(out dst);
             }
             dst = default;
             return false;
@@ -211,9 +210,8 @@ namespace Latios.Unika.InternalSourceGen
             where TDst : unmanaged, IScriptTypedExtensionsApi
             where TResolver : unmanaged, IScriptResolverBase
         {
-            var  script = ScriptCast.Resolve(ref src, ref resolver);
-            TDst dst    = default;
-            if (dst.TryCastInit(in script))
+            var script = ScriptCast.Resolve(ref src, ref resolver);
+            if (script.TryCast(out TDst dst))
                 return dst;
             ThrowBadCastOnResolve(script);
             return default;
@@ -330,52 +328,52 @@ namespace Latios.Unika.InternalSourceGen
         #endregion
     }
 
-    interface ITestInterface : IUnikaInterface
-    {
-    }
-
-    struct TestStruct : StaticAPI.IInterfaceDataTyped<ITestInterface, TestStruct>
-    {
-        StaticAPI.InterfaceData data;
-
-        TestStruct StaticAPI.IInterfaceDataTyped<ITestInterface, TestStruct>.assign { set => data = value.data; }
-
-        public Entity entity => throw new System.NotImplementedException();
-
-        public EntityScriptCollection allScripts => throw new System.NotImplementedException();
-
-        public int indexInEntity => throw new System.NotImplementedException();
-
-        public byte userByte { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
-        public bool userFlagA { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
-        public bool userFlagB { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
-
-        public ScriptRef ToRef()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Script ToScript()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        IScriptTypedExtensionsApi.WrappedIdAndMask IScriptTypedExtensionsApi.GetIdAndMask()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    //[BurstCompile]
-    static class TestStaticClass
-    {
-        //[BurstCompile]
-        public static void DoTest()
-        {
-            Script    script    = default;
-            ScriptRef scriptRef = script;
-            StaticAPI.TryResolve<TestStruct>(ref scriptRef, script.allScripts, out var result);
-        }
-    }
+    //interface ITestInterface : IUnikaInterface
+    //{
+    //}
+    //
+    //struct TestStruct : StaticAPI.IInterfaceDataTyped<ITestInterface, TestStruct>
+    //{
+    //    StaticAPI.InterfaceData data;
+    //
+    //    TestStruct StaticAPI.IInterfaceDataTyped<ITestInterface, TestStruct>.assign { set => data = value.data; }
+    //
+    //    public Entity entity => throw new System.NotImplementedException();
+    //
+    //    public EntityScriptCollection allScripts => throw new System.NotImplementedException();
+    //
+    //    public int indexInEntity => throw new System.NotImplementedException();
+    //
+    //    public byte userByte { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+    //    public bool userFlagA { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+    //    public bool userFlagB { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+    //
+    //    public ScriptRef ToRef()
+    //    {
+    //        throw new System.NotImplementedException();
+    //    }
+    //
+    //    public Script ToScript()
+    //    {
+    //        throw new System.NotImplementedException();
+    //    }
+    //
+    //    IScriptTypedExtensionsApi.WrappedIdAndMask IScriptTypedExtensionsApi.GetIdAndMask()
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
+    //
+    ////[BurstCompile]
+    //static class TestStaticClass
+    //{
+    //    //[BurstCompile]
+    //    public static void DoTest()
+    //    {
+    //        Script    script    = default;
+    //        ScriptRef scriptRef = script;
+    //        StaticAPI.TryResolve<TestStruct>(ref scriptRef, script.allScripts, out var result);
+    //    }
+    //}
 }
 

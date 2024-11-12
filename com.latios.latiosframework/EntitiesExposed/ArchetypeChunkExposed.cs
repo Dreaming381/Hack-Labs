@@ -2,6 +2,7 @@
 using System;
 using Unity.Burst.CompilerServices;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Entities.LowLevel.Unsafe;
 
 namespace Unity.Entities.Exposed
 {
@@ -62,11 +63,17 @@ namespace Unity.Entities.Exposed
             var accessor = chunk.GetUntypedBufferAccessor(ref bufferTypeHandle);
             if (accessor.Length == 0)
                 return default;
-            return new BufferAccessor<T>((byte*)accessor.GetUnsafeReadOnlyPtr(0), accessor.Length, accessor.ElementSize,
+            // Todo: Super dangerous. It would be much better to get the header pointer some other way.
+            return new BufferAccessor<T>(UnsafeUtility.As<UnsafeUntypedBufferAccessor, BytePtr>(ref accessor).ptr, accessor.Length, accessor.ElementSize,
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                                          bufferTypeHandle.IsReadOnly, bufferTypeHandle.m_Safety0, bufferTypeHandle.m_Safety1,
 #endif
                                          TypeManager.GetTypeInfo(typeIndex).BufferCapacity);
+        }
+
+        unsafe struct BytePtr
+        {
+            public byte* ptr;
         }
 
         // Todo: Move to dedicated file if more extensions are needed.

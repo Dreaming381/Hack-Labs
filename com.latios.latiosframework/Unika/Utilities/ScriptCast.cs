@@ -35,10 +35,10 @@ namespace Latios.Unika
         /// <summary>
         /// Returns true if the script can be casted to the specified script wrapper
         /// </summary>
-        public static bool Is<T>(this in Script script) where T : unmanaged, IScriptTypedExtensionsApi
+        public static unsafe bool Is<T>(this in Script script) where T : unmanaged, IScriptTypedExtensionsApi
         {
-            T result = default;
-            return result.TryCastInit(in script);
+            T result                                                                                = default;
+            return result.TryCastInit(in script, new IScriptTypedExtensionsApi.WrappedThisPtr { ptr = &result});
         }
 
         /// <summary>
@@ -83,10 +83,13 @@ namespace Latios.Unika
         /// <typeparam name="T">The target wrapper type for the script, such as an Interface</typeparam>
         /// <param name="casted">The casted container for the script, or Null if the cast fails</param>
         /// <returns>True if the cast succeeded, false otherwise</returns>
-        public static bool TryCast<T>(this in Script script, out T casted) where T : unmanaged, IScriptTypedExtensionsApi
+        public static unsafe bool TryCast<T>(this in Script script, out T casted) where T : unmanaged, IScriptTypedExtensionsApi
         {
-            casted = default;
-            return casted.TryCastInit(in script);
+            casted     = default;
+            var target = casted;
+            var result = casted.TryCastInit(in script, new IScriptTypedExtensionsApi.WrappedThisPtr { ptr = &target});
+            casted     = target;
+            return result;
         }
 
         /// <summary>

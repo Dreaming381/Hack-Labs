@@ -122,9 +122,9 @@ namespace Latios.Unika
                 bool filter = (idAndMask.bloomMask & c.m_headerRO.bloomMask) == idAndMask.bloomMask;
                 filter      = filter && f0.FilterBase(c) && f1.FilterBase(c) && f2.FilterBase(c) && f3.FilterBase(c) && f4.FilterBase(c) && f5.FilterBase(c) && f6.FilterBase(c) &&
                               f7.FilterBase(c);
-                currentCache = default;
-                if (filter && currentCache.TryCastInit(in c))
+                if (filter && c.TryCast(out TType casted))
                 {
+                    currentCache = casted;
                     return true;
                 }
             }

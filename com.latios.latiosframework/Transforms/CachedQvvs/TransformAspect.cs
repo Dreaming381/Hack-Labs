@@ -680,6 +680,14 @@ namespace Latios.Transforms
     public static class ComponentBrokerTransformAspectExtensions
     {
         /// <summary>
+        /// Adds the required component types needed by TransformAspect to the builder.
+        /// </summary>
+        public static ComponentBrokerBuilder WithTransformAspect(this ComponentBrokerBuilder builder)
+        {
+            return builder.With<WorldTransform, LocalTransform>(false).With<ParentToWorldTransform>(true);
+        }
+
+        /// <summary>
         /// Tries to get a TransformAspect on the specified entity. If the entity is not the
         /// entity used last in SetupEntity(), then a parallel job safety check may trigger an exception.
         /// </summary>
