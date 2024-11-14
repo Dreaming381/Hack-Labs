@@ -5,7 +5,7 @@ using Unity.Entities.Exposed;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-namespace Latios.Unika
+namespace Latios.Unika.Authoring.Systems
 {
     [WorldSystemFilter(WorldSystemFilterFlags.BakingSystem)]
     [UpdateInGroup(typeof(PostBakingSystemGroup))]

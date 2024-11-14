@@ -3,7 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Latios.Unika
+namespace Latios.Unika.Authoring
 {
     /// <summary>
     /// This should be added to any GameObject that will be baked into an entity and have scripts assigned to it.
@@ -27,6 +27,17 @@ namespace Latios.Unika
             types.Add(ComponentType.ReadWrite<UnikaSerializedObjectReference>());
             types.Add(ComponentType.ReadWrite<UnikaSerializedTypeIds>());
             AddComponent(entity, new ComponentTypeSet(in types));
+        }
+    }
+
+    [DisableAutoCreation]
+    public class UnikaScriptBufferEntitySerializationBaker : Baker<UnikaScriptBufferAuthoring>
+    {
+        public override void Bake(UnikaScriptBufferAuthoring authoring)
+        {
+            var entity = GetEntity(TransformUsageFlags.None);
+            AddComponent<UnikaEntitySerializationController>(entity);
+            SetComponentEnabled<UnikaEntitySerializationController>(entity, true);
         }
     }
 }

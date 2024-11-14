@@ -30,6 +30,25 @@ namespace Latios.Unika
     }
 
     /// <summary>
+    /// Enable this component to request entity serialization prior to the InitializationSystemGroup sync points
+    /// (or whenever SerializeScriptEntitiesSystem runs). Deserialization will only run on entities which are
+    /// different from the entity serialized (such as instantiated entities). The enabled status will be cleared
+    /// again after DeserializeScriptEntitiesSystem runs.
+    /// </summary>
+    public struct UnikaEntitySerializationController : IComponentData, IEnableableComponent
+    {
+        internal int originalIndex;
+        internal int originalVersion;
+
+        /// <summary>
+        /// Returns true if this was the same entity that was serialized. In this case, deserialization is unnecessary.
+        /// </summary>
+        /// <param name="entity">The entity with serialized entity references</param>
+        /// <returns>True if this entity was the same used for serializing the scripts, false if it is an instantiated entity or entity in a different world.</returns>
+        public bool IsOriginalEntity(Entity entity) => entity.Index == originalIndex && entity.Version == originalVersion;
+    }
+
+    /// <summary>
     /// All entities within all scripts can be serialized and deserialized from here to support entity remapping.
     /// </summary>
     [InternalBufferCapacity(0)]

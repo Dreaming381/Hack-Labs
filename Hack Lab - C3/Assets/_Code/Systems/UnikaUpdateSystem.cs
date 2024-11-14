@@ -71,11 +71,11 @@ namespace C3
 
             public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask)
             {
-                updateContext.ecs.SetupEntity(in chunk, 0);
                 var scriptsBuffers = chunk.GetBufferAccessor<UnikaScripts>(ref updateContext.ecs);
                 var entities       = chunk.GetNativeArray(updateContext.ecs.entityTypeHandle);
                 for (int i = 0; i < scriptsBuffers.Length; i++)
                 {
+                    updateContext.ecs.SetupEntity(in chunk, i);
                     var allScripts = scriptsBuffers[i].AllScripts(entities[i]);
                     foreach (var script in allScripts.Of<IUnikaUpdate.Interface>())
                     {

@@ -3,7 +3,6 @@ using Latios.Unika;
 using Latios.Unika.Authoring;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
 
 namespace C3.Authoring
 {
@@ -16,6 +15,9 @@ namespace C3.Authoring
             var script = new Scripts.SpinningScript { rotationSpeedRadians = math.radians(rotationSpeed) };
             toAssign.Assign(ref script);
             toAssign.transformUsageFlags = TransformUsageFlags.Dynamic;
+            toAssign.userFlagA           = false;
+            toAssign.userFlagB           = false;
+            toAssign.userByte            = 0;
         }
 
         public override bool IsValid()

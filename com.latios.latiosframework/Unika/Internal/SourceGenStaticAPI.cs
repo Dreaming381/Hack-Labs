@@ -316,7 +316,307 @@ namespace Latios.Unika.InternalSourceGen
             return ref UnsafeUtility.AsRef<TArg>(argPtr);
         }
 
-        // Todo: 3 - 16
+        unsafe struct ThreeArg
+        {
+            public void* script;
+            public void* arg0;
+            public void* arg1;
+            public void* arg2;
+        }
+
+        public static unsafe void Dispatch<TArg0, TArg1, TArg2>(ref InterfaceData data, int operation, ref TArg0 targ0, ref TArg1 targ1, ref TArg2 targ2)
+            where TArg0 : unmanaged
+            where TArg1 : unmanaged
+            where TArg2 : unmanaged
+        {
+            ref var      arg0 = ref UnsafeUtility.As<TArg0, byte>(ref targ0);
+            ref var      arg1 = ref UnsafeUtility.As<TArg1, byte>(ref targ1);
+            ref var      arg2 = ref UnsafeUtility.As<TArg2, byte>(ref targ2);
+            fixed (byte* a0   = &arg0, a1 = &arg1, a2 = &arg2)
+            {
+                var context = new ThreeArg
+                {
+                    script = data.script.GetUnsafePtrAsBytePtr(),
+                    arg0   = a0,
+                    arg1   = a1,
+                    arg2   = a2,
+                };
+                data.functionPointer.Invoke(&context, operation);
+            }
+        }
+
+        public static unsafe ref TArg ExtractArg2<TArg>(ContextPtr context) where TArg : unmanaged
+        {
+            var argPtr = ((ThreeArg*)context.ptr)->arg2;
+            return ref UnsafeUtility.AsRef<TArg>(argPtr);
+        }
+
+        unsafe struct FourArg
+        {
+            public void* script;
+            public void* arg0;
+            public void* arg1;
+            public void* arg2;
+            public void* arg3;
+        }
+
+        public static unsafe void Dispatch<TArg0, TArg1, TArg2, TArg3>(ref InterfaceData data, int operation, ref TArg0 targ0, ref TArg1 targ1, ref TArg2 targ2, ref TArg3 targ3)
+            where TArg0 : unmanaged
+            where TArg1 : unmanaged
+            where TArg2 : unmanaged
+            where TArg3 : unmanaged
+        {
+            ref var      arg0 = ref UnsafeUtility.As<TArg0, byte>(ref targ0);
+            ref var      arg1 = ref UnsafeUtility.As<TArg1, byte>(ref targ1);
+            ref var      arg2 = ref UnsafeUtility.As<TArg2, byte>(ref targ2);
+            ref var      arg3 = ref UnsafeUtility.As<TArg3, byte>(ref targ3);
+            fixed (byte* a0   = &arg0, a1 = &arg1, a2 = &arg2, a3 = &arg3)
+            {
+                var context = new FourArg
+                {
+                    script = data.script.GetUnsafePtrAsBytePtr(),
+                    arg0   = a0,
+                    arg1   = a1,
+                    arg2   = a2,
+                    arg3   = a3,
+                };
+                data.functionPointer.Invoke(&context, operation);
+            }
+        }
+
+        public static unsafe ref TArg ExtractArg3<TArg>(ContextPtr context) where TArg : unmanaged
+        {
+            var argPtr = ((FourArg*)context.ptr)->arg3;
+            return ref UnsafeUtility.AsRef<TArg>(argPtr);
+        }
+
+        unsafe struct FiveArg
+        {
+            public void* script;
+            public void* arg0;
+            public void* arg1;
+            public void* arg2;
+            public void* arg3;
+            public void* arg4;
+        }
+
+        public static unsafe void Dispatch<TArg0, TArg1, TArg2, TArg3, TArg4>(ref InterfaceData data,
+                                                                              int operation,
+                                                                              ref TArg0 targ0,
+                                                                              ref TArg1 targ1,
+                                                                              ref TArg2 targ2,
+                                                                              ref TArg3 targ3,
+                                                                              ref TArg4 targ4)
+            where TArg0 : unmanaged
+            where TArg1 : unmanaged
+            where TArg2 : unmanaged
+            where TArg3 : unmanaged
+            where TArg4 : unmanaged
+        {
+            ref var      arg0 = ref UnsafeUtility.As<TArg0, byte>(ref targ0);
+            ref var      arg1 = ref UnsafeUtility.As<TArg1, byte>(ref targ1);
+            ref var      arg2 = ref UnsafeUtility.As<TArg2, byte>(ref targ2);
+            ref var      arg3 = ref UnsafeUtility.As<TArg3, byte>(ref targ3);
+            ref var      arg4 = ref UnsafeUtility.As<TArg4, byte>(ref targ4);
+            fixed (byte* a0   = &arg0, a1 = &arg1, a2 = &arg2, a3 = &arg3, a4 = &arg4)
+            {
+                var context = new FiveArg
+                {
+                    script = data.script.GetUnsafePtrAsBytePtr(),
+                    arg0   = a0,
+                    arg1   = a1,
+                    arg2   = a2,
+                    arg3   = a3,
+                    arg4   = a4,
+                };
+                data.functionPointer.Invoke(&context, operation);
+            }
+        }
+
+        public static unsafe ref TArg ExtractArg4<TArg>(ContextPtr context) where TArg : unmanaged
+        {
+            var argPtr = ((FiveArg*)context.ptr)->arg4;
+            return ref UnsafeUtility.AsRef<TArg>(argPtr);
+        }
+
+        unsafe struct SixArg
+        {
+            public void* script;
+            public void* arg0;
+            public void* arg1;
+            public void* arg2;
+            public void* arg3;
+            public void* arg4;
+            public void* arg5;
+        }
+
+        public static unsafe void Dispatch<TArg0, TArg1, TArg2, TArg3, TArg4, TArg5>(ref InterfaceData data,
+                                                                                     int operation,
+                                                                                     ref TArg0 targ0,
+                                                                                     ref TArg1 targ1,
+                                                                                     ref TArg2 targ2,
+                                                                                     ref TArg3 targ3,
+                                                                                     ref TArg4 targ4,
+                                                                                     ref TArg5 targ5)
+            where TArg0 : unmanaged
+            where TArg1 : unmanaged
+            where TArg2 : unmanaged
+            where TArg3 : unmanaged
+            where TArg4 : unmanaged
+            where TArg5 : unmanaged
+        {
+            ref var      arg0 = ref UnsafeUtility.As<TArg0, byte>(ref targ0);
+            ref var      arg1 = ref UnsafeUtility.As<TArg1, byte>(ref targ1);
+            ref var      arg2 = ref UnsafeUtility.As<TArg2, byte>(ref targ2);
+            ref var      arg3 = ref UnsafeUtility.As<TArg3, byte>(ref targ3);
+            ref var      arg4 = ref UnsafeUtility.As<TArg4, byte>(ref targ4);
+            ref var      arg5 = ref UnsafeUtility.As<TArg5, byte>(ref targ5);
+            fixed (byte* a0   = &arg0, a1 = &arg1, a2 = &arg2, a3 = &arg3, a4 = &arg4, a5 = &arg5)
+            {
+                var context = new SixArg
+                {
+                    script = data.script.GetUnsafePtrAsBytePtr(),
+                    arg0   = a0,
+                    arg1   = a1,
+                    arg2   = a2,
+                    arg3   = a3,
+                    arg4   = a4,
+                    arg5   = a5,
+                };
+                data.functionPointer.Invoke(&context, operation);
+            }
+        }
+
+        public static unsafe ref TArg ExtractArg5<TArg>(ContextPtr context) where TArg : unmanaged
+        {
+            var argPtr = ((SixArg*)context.ptr)->arg5;
+            return ref UnsafeUtility.AsRef<TArg>(argPtr);
+        }
+
+        unsafe struct SevenArg
+        {
+            public void* script;
+            public void* arg0;
+            public void* arg1;
+            public void* arg2;
+            public void* arg3;
+            public void* arg4;
+            public void* arg5;
+            public void* arg6;
+        }
+
+        public static unsafe void Dispatch<TArg0, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6>(ref InterfaceData data,
+                                                                                            int operation,
+                                                                                            ref TArg0 targ0,
+                                                                                            ref TArg1 targ1,
+                                                                                            ref TArg2 targ2,
+                                                                                            ref TArg3 targ3,
+                                                                                            ref TArg4 targ4,
+                                                                                            ref TArg5 targ5,
+                                                                                            ref TArg6 targ6)
+            where TArg0 : unmanaged
+            where TArg1 : unmanaged
+            where TArg2 : unmanaged
+            where TArg3 : unmanaged
+            where TArg4 : unmanaged
+            where TArg5 : unmanaged
+            where TArg6 : unmanaged
+        {
+            ref var      arg0 = ref UnsafeUtility.As<TArg0, byte>(ref targ0);
+            ref var      arg1 = ref UnsafeUtility.As<TArg1, byte>(ref targ1);
+            ref var      arg2 = ref UnsafeUtility.As<TArg2, byte>(ref targ2);
+            ref var      arg3 = ref UnsafeUtility.As<TArg3, byte>(ref targ3);
+            ref var      arg4 = ref UnsafeUtility.As<TArg4, byte>(ref targ4);
+            ref var      arg5 = ref UnsafeUtility.As<TArg5, byte>(ref targ5);
+            ref var      arg6 = ref UnsafeUtility.As<TArg6, byte>(ref targ6);
+            fixed (byte* a0   = &arg0, a1 = &arg1, a2 = &arg2, a3 = &arg3, a4 = &arg4, a5 = &arg5, a6 = &arg6)
+            {
+                var context = new SevenArg
+                {
+                    script = data.script.GetUnsafePtrAsBytePtr(),
+                    arg0   = a0,
+                    arg1   = a1,
+                    arg2   = a2,
+                    arg3   = a3,
+                    arg4   = a4,
+                    arg5   = a5,
+                    arg6   = a6,
+                };
+                data.functionPointer.Invoke(&context, operation);
+            }
+        }
+
+        public static unsafe ref TArg ExtractArg6<TArg>(ContextPtr context) where TArg : unmanaged
+        {
+            var argPtr = ((SevenArg*)context.ptr)->arg6;
+            return ref UnsafeUtility.AsRef<TArg>(argPtr);
+        }
+
+        unsafe struct EightArg
+        {
+            public void* script;
+            public void* arg0;
+            public void* arg1;
+            public void* arg2;
+            public void* arg3;
+            public void* arg4;
+            public void* arg5;
+            public void* arg6;
+            public void* arg7;
+        }
+
+        public static unsafe void Dispatch<TArg0, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7>(ref InterfaceData data,
+                                                                                                   int operation,
+                                                                                                   ref TArg0 targ0,
+                                                                                                   ref TArg1 targ1,
+                                                                                                   ref TArg2 targ2,
+                                                                                                   ref TArg3 targ3,
+                                                                                                   ref TArg4 targ4,
+                                                                                                   ref TArg5 targ5,
+                                                                                                   ref TArg6 targ6,
+                                                                                                   ref TArg7 targ7)
+            where TArg0 : unmanaged
+            where TArg1 : unmanaged
+            where TArg2 : unmanaged
+            where TArg3 : unmanaged
+            where TArg4 : unmanaged
+            where TArg5 : unmanaged
+            where TArg6 : unmanaged
+            where TArg7 : unmanaged
+        {
+            ref var      arg0 = ref UnsafeUtility.As<TArg0, byte>(ref targ0);
+            ref var      arg1 = ref UnsafeUtility.As<TArg1, byte>(ref targ1);
+            ref var      arg2 = ref UnsafeUtility.As<TArg2, byte>(ref targ2);
+            ref var      arg3 = ref UnsafeUtility.As<TArg3, byte>(ref targ3);
+            ref var      arg4 = ref UnsafeUtility.As<TArg4, byte>(ref targ4);
+            ref var      arg5 = ref UnsafeUtility.As<TArg5, byte>(ref targ5);
+            ref var      arg6 = ref UnsafeUtility.As<TArg6, byte>(ref targ6);
+            ref var      arg7 = ref UnsafeUtility.As<TArg7, byte>(ref targ7);
+            fixed (byte* a0   = &arg0, a1 = &arg1, a2 = &arg2, a3 = &arg3, a4 = &arg4, a5 = &arg5, a6 = &arg6, a7 = &arg7)
+            {
+                var context = new EightArg
+                {
+                    script = data.script.GetUnsafePtrAsBytePtr(),
+                    arg0   = a0,
+                    arg1   = a1,
+                    arg2   = a2,
+                    arg3   = a3,
+                    arg4   = a4,
+                    arg5   = a5,
+                    arg6   = a6,
+                    arg7   = a7,
+                };
+                data.functionPointer.Invoke(&context, operation);
+            }
+        }
+
+        public static unsafe ref TArg ExtractArg7<TArg>(ContextPtr context) where TArg : unmanaged
+        {
+            var argPtr = ((EightArg*)context.ptr)->arg7;
+            return ref UnsafeUtility.AsRef<TArg>(argPtr);
+        }
+
+        // Todo: Need more than 8?
         #endregion
 
         #region Safety

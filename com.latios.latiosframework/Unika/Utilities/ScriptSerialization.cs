@@ -39,6 +39,26 @@ namespace Latios.Unika
         }
 
         /// <summary>
+        /// Serialize entities in all of the scripts for saving, moving between worlds, or instantiating,
+        /// and setup the serialization controller for automatic deserialization. Call this if you need to perform serialization in the middle of a system
+        /// making structural changes, such as within the LatiosWorldSyncGroup.
+        /// </summary>
+        /// <param name="entityWithScripts">The current entity containing the scripts. This entity will not be deserialized.</param>
+        /// <param name="entityManager">The EntityManager the entity belongs to</param>
+        public static void SerializeEntities(Entity entityWithScripts, EntityManager entityManager)
+        {
+            entityManager.SetComponentData(entityWithScripts, new UnikaEntitySerializationController
+            {
+                originalIndex   = entityWithScripts.Index,
+                originalVersion = entityWithScripts.Version
+            });
+            entityManager.SetComponentEnabled<UnikaEntitySerializationController>(entityWithScripts, true);
+            var scripts    = entityManager.GetBuffer<UnikaScripts>(entityWithScripts, true);
+            var entityRefs = entityManager.GetBuffer<UnikaSerializedEntityReference>(entityWithScripts, false);
+            SerializeEntities(scripts.AsNativeArray(), ref entityRefs);
+        }
+
+        /// <summary>
         /// Serialize entities in all of the scripts for saving, moving between worlds, or instantiating
         /// </summary>
         /// <param name="scripts">The scripts to serialize</param>
@@ -64,6 +84,26 @@ namespace Latios.Unika
                     });
                 }
             }
+        }
+
+        /// <summary>
+        /// Deserialize entities in all of the scripts after loading, moving between worlds, or instantiating,
+        /// and clear the serialization controller state. Call this if you need to perform deserialization in the middle of a system
+        /// making structural changes, such as within the LatiosWorldSyncGroup.
+        /// </summary>
+        /// <param name="entityWithScripts">The current entity containing the scripts. This entity will not be deserialized.</param>
+        /// <param name="entityManager">The EntityManager the entity belongs to</param>
+        public static void DeserializeEntities(Entity entityWithScripts, EntityManager entityManager)
+        {
+            entityManager.SetComponentData(entityWithScripts, new UnikaEntitySerializationController
+            {
+                originalIndex   = entityWithScripts.Index,
+                originalVersion = entityWithScripts.Version
+            });
+            entityManager.SetComponentEnabled<UnikaEntitySerializationController>(entityWithScripts, false);
+            var scripts    = entityManager.GetBuffer<UnikaScripts>(entityWithScripts, false).AsNativeArray();
+            var entityRefs = entityManager.GetBuffer<UnikaSerializedEntityReference>(entityWithScripts, true);
+            DeserializeEntities(ref scripts, entityRefs.AsNativeArray());
         }
 
         /// <summary>
