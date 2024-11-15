@@ -171,7 +171,7 @@ namespace Latios.Unika
 
         bool IScriptTypedExtensionsApi.TryCastInit(in Script script, IScriptTypedExtensionsApi.WrappedThisPtr thisPtr)
         {
-            var result = ScriptCast.TryCast(in script, out this);
+            var result = ScriptCast.TryCastScript(in script, out this);
             UnsafeUtility.CopyStructureToPtr(ref this, thisPtr.ptr);
             return result;
         }
