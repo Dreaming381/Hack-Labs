@@ -1,3 +1,4 @@
+using Latios.Authoring;
 using Latios.Transforms;
 using Latios.Unika;
 using Latios.Unika.Authoring;
@@ -11,18 +12,20 @@ namespace C3
     {
         public partial class SineScript : UnikaScriptAuthoring<Scripts.SineScript>
         {
-            public float                                     frequency = 0.5f;
-            public float                                     amplitude = 1.5f;
-            public UnikaScriptAuthoring<Scripts.TimerScript> timer;
+            public float frequency = 0.5f;
+            public float amplitude = 1.5f;
+            //public UnikaScriptAuthoring<Scripts.TimerScript> timer;
 
             public override void Bake(IBaker baker, ref AuthoredScriptAssignment toAssign, Entity smartPostProcessTarget)
             {
+                var timer = baker.GetComponent<IUnikaInterfaceAuthoring<Scripts.ITimeState.InterfaceRef> >();
+
                 var script = new Scripts.SineScript
                 {
                     freqRadians = frequency * math.TAU,
                     amplitude   = amplitude,
                     currentTime = 0f,
-                    timerRef    = baker.GetScriptRefOrDefaultFrom(timer),
+                    timerRef    = baker.GetInterfaceRefOrDefaultFrom(timer),
                 };
                 toAssign.Assign(ref script);
                 toAssign.transformUsageFlags = TransformUsageFlags.None;
@@ -42,10 +45,11 @@ namespace C3
     {
         public partial struct SineScript : IUnikaScript, IUnikaUpdate
         {
-            public float                  freqRadians;
-            public float                  amplitude;
-            public float                  currentTime;
-            public ScriptRef<TimerScript> timerRef;
+            public float freqRadians;
+            public float amplitude;
+            public float currentTime;
+            //public ScriptRef<TimerScript> timerRef;
+            public ITimeState.InterfaceRef timerRef;
 
             public void Update(ref UnikaUpdateContext context, Script thisScript)
             {
@@ -56,8 +60,9 @@ namespace C3
                 }
 
                 // Test return values of interfaces.
-                ITimeState.Interface timerface = timer.ToInterface();
-                bool                 state     = timerface.GetState();
+                //ITimeState.Interface timerface = timer.ToInterface();
+                //bool                 state     = timerface.GetState();
+                bool state = timer.GetState();
                 if (state)
                 {
                     currentTime += context.deltaTime;
