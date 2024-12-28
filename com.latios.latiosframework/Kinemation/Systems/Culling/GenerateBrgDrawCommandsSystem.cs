@@ -16,12 +16,6 @@ using UnityEngine.Rendering;
 
 using static Unity.Entities.SystemAPI;
 
-#if UNITY_6000_0_OR_NEWER
-using ChunkMergeCullingMask = Latios.Kinemation.ChunkPerDispatchCullingMask;
-#else
-using ChunkMergeCullingMask = Latios.Kinemation.ChunkPerFrameCullingMask;
-#endif
-
 namespace Latios.Kinemation.Systems
 {
     [RequireMatchingQueriesForUpdate]
@@ -56,7 +50,7 @@ namespace Latios.Kinemation.Systems
         {
             latiosWorld = state.GetLatiosWorldUnmanaged();
             m_metaQuery = state.Fluent().With<ChunkHeader>(true).With<ChunkPerCameraCullingMask>(true).With<ChunkPerCameraCullingSplitsMask>(true)
-                          .With<ChunkMergeCullingMask>(false).With<EntitiesGraphicsChunkInfo>(true).Build();
+                          .With<ChunkPerDispatchCullingMask>(false).With<EntitiesGraphicsChunkInfo>(true).Build();
             var motionVectorDeformQuery = state.Fluent().WithAnyEnabled<PreviousDeformShaderIndex, TwoAgoDeformShaderIndex, PreviousMatrixVertexSkinningShaderIndex>(true)
                                           .WithAnyEnabled<TwoAgoMatrixVertexSkinningShaderIndex, PreviousDqsVertexSkinningShaderIndex, TwoAgoDqsVertexSkinningShaderIndex>(true)
                                           .WithAnyEnabled<ShaderEffectRadialBounds,
@@ -67,9 +61,9 @@ namespace Latios.Kinemation.Systems
 
             m_findJob = new FindChunksWithVisibleJob
             {
-                perCameraCullingMaskHandle      = state.GetComponentTypeHandle<ChunkPerCameraCullingMask>(true),
-                chunkHeaderHandle               = state.GetComponentTypeHandle<ChunkHeader>(true),
-                perCameraMergeCullingMaskHandle = state.GetComponentTypeHandle<ChunkMergeCullingMask>(false)
+                perCameraCullingMaskHandle   = state.GetComponentTypeHandle<ChunkPerCameraCullingMask>(true),
+                chunkHeaderHandle            = state.GetComponentTypeHandle<ChunkHeader>(true),
+                perDispatchCullingMaskHandle = state.GetComponentTypeHandle<ChunkPerDispatchCullingMask>(false)
             };
 
             m_useFewerJobs = false;
@@ -98,7 +92,7 @@ namespace Latios.Kinemation.Systems
             m_findJob.chunkHeaderHandle.Update(ref state);
             m_findJob.chunksToProcess = chunkList.AsParallelWriter();
             m_findJob.perCameraCullingMaskHandle.Update(ref state);
-            m_findJob.perCameraMergeCullingMaskHandle.Update(ref state);
+            m_findJob.perDispatchCullingMaskHandle.Update(ref state);
 
             // TODO: Dynamically estimate this based on past frames
             int binCountEstimate       = 1;
@@ -120,21 +114,22 @@ namespace Latios.Kinemation.Systems
 #if UNITY_EDITOR
                 EditorDataComponentHandle = GetSharedComponentTypeHandle<EditorRenderData>(),
 #endif
-                EntitiesGraphicsChunkInfo   = GetComponentTypeHandle<EntitiesGraphicsChunkInfo>(true),
-                LastSystemVersion           = state.LastSystemVersion,
-                LightMaps                   = ManagedAPI.GetSharedComponentTypeHandle<LightMaps>(),
-                lodCrossfadeHandle          = GetComponentTypeHandle<LodCrossfade>(true),
-                motionVectorDeformQueryMask = m_motionVectorDeformQueryMask,
-                PostProcessMatrix           = GetComponentTypeHandle<PostProcessMatrix>(true),
-                MaterialMeshInfo            = GetComponentTypeHandle<MaterialMeshInfo>(true),
-                ProceduralMotion            = GetComponentTypeHandle<PerVertexMotionVectors_Tag>(true),
-                ProfilerEmitChunk           = m_profilerEmitChunk,
-                RenderFilterSettings        = GetSharedComponentTypeHandle<RenderFilterSettings>(),
-                RenderMeshArray             = ManagedAPI.GetSharedComponentTypeHandle<RenderMeshArray>(),
-                SceneCullingMask            = cullingContext.sceneCullingMask,
-                speedTreeCrossfadeTagHandle = GetComponentTypeHandle<SpeedTreeCrossfadeTag>(true),
-                splitsAreValid              = cullingContext.viewType == BatchCullingViewType.Light,
-                useMmiRangeLodTagHandle     = GetComponentTypeHandle<UseMmiRangeLodTag>(true),
+                EntitiesGraphicsChunkInfo    = GetComponentTypeHandle<EntitiesGraphicsChunkInfo>(true),
+                LastSystemVersion            = state.LastSystemVersion,
+                LightMaps                    = ManagedAPI.GetSharedComponentTypeHandle<LightMaps>(),
+                lodCrossfadeHandle           = GetComponentTypeHandle<LodCrossfade>(true),
+                motionVectorDeformQueryMask  = m_motionVectorDeformQueryMask,
+                PostProcessMatrix            = GetComponentTypeHandle<PostProcessMatrix>(true),
+                MaterialMeshInfo             = GetComponentTypeHandle<MaterialMeshInfo>(true),
+                ProceduralMotion             = GetComponentTypeHandle<PerVertexMotionVectors_Tag>(true),
+                ProfilerEmitChunk            = m_profilerEmitChunk,
+                RenderFilterSettings         = GetSharedComponentTypeHandle<RenderFilterSettings>(),
+                RenderMeshArray              = ManagedAPI.GetSharedComponentTypeHandle<RenderMeshArray>(),
+                overrideMeshInRangeTagHandle = GetComponentTypeHandle<OverrideMeshInRangeTag>(true),
+                SceneCullingMask             = cullingContext.sceneCullingMask,
+                speedTreeCrossfadeTagHandle  = GetComponentTypeHandle<SpeedTreeCrossfadeTag>(true),
+                splitsAreValid               = cullingContext.viewType == BatchCullingViewType.Light,
+                useMmiRangeLodTagHandle      = GetComponentTypeHandle<UseMmiRangeLodTag>(true),
 #if !LATIOS_TRANSFORMS_UNCACHED_QVVS && !LATIOS_TRANSFORMS_UNITY
                 WorldTransform = GetComponentTypeHandle<WorldTransform>(true),
 #elif !LATIOS_TRANSFORMS_UNCACHED_QVVS && LATIOS_TRANSFORMS_UNITY
@@ -269,7 +264,7 @@ namespace Latios.Kinemation.Systems
             [ReadOnly] public ComponentTypeHandle<ChunkPerCameraCullingMask> perCameraCullingMaskHandle;
             [ReadOnly] public ComponentTypeHandle<ChunkHeader>               chunkHeaderHandle;
 
-            public ComponentTypeHandle<ChunkMergeCullingMask> perCameraMergeCullingMaskHandle;
+            public ComponentTypeHandle<ChunkPerDispatchCullingMask> perDispatchCullingMaskHandle;
 
             public NativeList<ArchetypeChunk>.ParallelWriter chunksToProcess;
 
@@ -280,7 +275,7 @@ namespace Latios.Kinemation.Systems
                 int chunksCount = 0;
                 var masks       = metaChunk.GetNativeArray(ref perCameraCullingMaskHandle);
                 var headers     = metaChunk.GetNativeArray(ref chunkHeaderHandle);
-                var mergeMask   = (ChunkMergeCullingMask*)metaChunk.GetComponentDataPtrRW(ref perCameraMergeCullingMaskHandle);
+                var mergeMask   = (ChunkPerDispatchCullingMask*)metaChunk.GetComponentDataPtrRW(ref perDispatchCullingMaskHandle);
                 for (int i = 0; i < metaChunk.Count; i++)
                 {
                     var mask = masks[i];
@@ -310,6 +305,7 @@ namespace Latios.Kinemation.Systems
             [ReadOnly] public ComponentTypeHandle<LodCrossfade>                    lodCrossfadeHandle;
             [ReadOnly] public ComponentTypeHandle<SpeedTreeCrossfadeTag>           speedTreeCrossfadeTagHandle;
             [ReadOnly] public ComponentTypeHandle<UseMmiRangeLodTag>               useMmiRangeLodTagHandle;
+            [ReadOnly] public ComponentTypeHandle<OverrideMeshInRangeTag>          overrideMeshInRangeTagHandle;
             [ReadOnly] public EntityQueryMask                                      motionVectorDeformQueryMask;
             public bool                                                            splitsAreValid;
 
@@ -386,6 +382,7 @@ namespace Latios.Kinemation.Systems
                     bool isLightMapped       = chunk.GetSharedComponentIndex(LightMaps) >= 0;
                     bool hasLodCrossfade     = chunk.Has(ref lodCrossfadeHandle);
                     bool useMmiRangeLod      = chunk.Has(ref useMmiRangeLodTagHandle);
+                    bool hasOverrideMesh     = chunk.Has(ref overrideMeshInRangeTagHandle);
 
                     // Check if the chunk has statically disabled motion (i.e. never in motion pass)
                     // or enabled motion (i.e. in motion pass if there was actual motion or force-to-zero).
@@ -500,13 +497,9 @@ namespace Latios.Kinemation.Systems
                             bool isCrossfadeReady                 = hasLodCrossfade && crossFadeEnableds[entityIndex];
                             if (isCrossfadeReady)
                             {
-#if UNITY_6000_0_OR_NEWER
                                 if (!isSpeedTree)
                                     drawCommandFlags |= BatchDrawCommandFlags.LODCrossFadeKeyword;
-                                drawCommandFlags |= BatchDrawCommandFlags.LODCrossFadeValuePacked;
-#else
-                                drawCommandFlags |= BatchDrawCommandFlags.LODCrossFade;
-#endif
+                                drawCommandFlags     |= BatchDrawCommandFlags.LODCrossFadeValuePacked;
                             }
 
                             if (materialMeshInfo.HasMaterialMeshIndexRange)
@@ -538,6 +531,10 @@ namespace Latios.Kinemation.Systems
                                     }
                                 }
 
+                                BatchMeshID overrideMesh = default;
+                                if (hasOverrideMesh)
+                                    overrideMesh = materialMeshInfo.IsRuntimeMesh ? materialMeshInfo.MeshID : brgRenderMeshArray.GetMeshID(materialMeshInfo);
+
                                 for (int i = 0; i < matMeshIndexRange.length; i++)
                                 {
                                     int matMeshSubMeshIndex = matMeshIndexRange.start + i;
@@ -562,6 +559,9 @@ namespace Latios.Kinemation.Systems
                                         else if (isLow)
                                             filterIndexWithLodBit &= 0x7fffffff;
                                     }
+
+                                    if (hasOverrideMesh)
+                                        matMeshSubMesh.Mesh = overrideMesh;
 
                                     DrawCommandSettings settings = new DrawCommandSettings
                                     {
@@ -885,11 +885,7 @@ namespace Latios.Kinemation.Systems
 
             private static bool UseCrossfades(BatchDrawCommandFlags flags)
             {
-#if UNITY_6000_0_OR_NEWER
                 return (flags & BatchDrawCommandFlags.LODCrossFadeValuePacked) == BatchDrawCommandFlags.LODCrossFadeValuePacked;
-#else
-                return (flags & BatchDrawCommandFlags.LODCrossFade) == BatchDrawCommandFlags.LODCrossFade;
-#endif
             }
         }
 

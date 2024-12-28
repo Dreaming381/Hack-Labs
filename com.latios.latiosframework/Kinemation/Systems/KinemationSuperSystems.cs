@@ -33,6 +33,19 @@ namespace Latios.Kinemation.Systems
             EnableSystemSorting = true;
         }
     }
+
+    /// <summary>
+    /// This super system is the first to execute within KinemationCustomGraphicsSuperSystem.
+    /// Use it to enable entities for custom graphics processing.
+    /// </summary>
+    [DisableAutoCreation]
+    public partial class KinemationCustomGraphicsSetupSuperSystem : SuperSystem
+    {
+        protected override void CreateSystems()
+        {
+            EnableSystemSorting = true;
+        }
+    }
     #endregion
 
     #region Update SuperSystems
@@ -77,6 +90,7 @@ namespace Latios.Kinemation.Systems
             GetOrCreateAndAddUnmanagedSystem<LatiosLightProbeUpdateSystem>();
             GetOrCreateAndAddUnmanagedSystem<CombineExposedBonesSystem>();
             GetOrCreateAndAddUnmanagedSystem<UpdateSkinnedPostProcessMatrixBoundsSystem>();
+            GetOrCreateAndAddUnmanagedSystem<AllocateUniqueMeshesSystem>();
             GetOrCreateAndAddManagedSystem<KinemationCustomGraphicsSuperSystem>();
 #if UNITY_EDITOR
             GetOrCreateAndAddManagedSystem<KinemationCullingPassSystemExposerSuperSystem>();
@@ -156,19 +170,6 @@ namespace Latios.Kinemation.Systems
     }
 
     /// <summary>
-    /// This super system is the first to execute within KinemationCustomGraphicsSuperSystem.
-    /// Use it to enable entities for custom graphics processing.
-    /// </summary>
-    [DisableAutoCreation]
-    public partial class KinemationCustomGraphicsSetupSuperSystem : SuperSystem
-    {
-        protected override void CreateSystems()
-        {
-            EnableSystemSorting = true;
-        }
-    }
-
-    /// <summary>
     /// This super system executes special dispatch custom graphics systems in round-robin fashion.
     /// This is because dispatch systems typically require two separate sync points each to
     /// interact with the graphics API. By executing these phases in round-robin, the worker
@@ -217,32 +218,19 @@ namespace Latios.Kinemation.Systems
             EnableSystemSorting = false;
 
             GetOrCreateAndAddUnmanagedSystem<InitializeAndFilterPerCameraSystem>();
+            GetOrCreateAndAddUnmanagedSystem<CullInvalidUniqueMeshesSystem>();
             GetOrCreateAndAddUnmanagedSystem<FrustumCullExposedSkeletonsSystem>();
             GetOrCreateAndAddUnmanagedSystem<FrustumCullOptimizedSkeletonsSystem>();
             GetOrCreateAndAddUnmanagedSystem<CullLodsSystem>();
             GetOrCreateAndAddUnmanagedSystem<FrustumCullSkinnedEntitiesSystem>();
             GetOrCreateAndAddUnmanagedSystem<FrustumCullSkinnedPostProcessEntitiesSystem>();
             GetOrCreateAndAddUnmanagedSystem<FrustumCullUnskinnedEntitiesSystem>();
-
-#if UNITY_6000_0_OR_NEWER
             GetOrCreateAndAddUnmanagedSystem<CopyDeformCullingSystem>();
-#else
-            GetOrCreateAndAddUnmanagedSystem<AllocateDeformMaterialPropertiesSystem>();
-            GetOrCreateAndAddUnmanagedSystem<CopyDeformWithCullingSystem>();
-            GetOrCreateAndAddUnmanagedSystem<CopyPerCameraMasksToPerDispatchMasksSystem>();
-
-            GetOrCreateAndAddManagedSystem<CullingRoundRobinDispatchSuperSystem>();
-#endif
-
             GetOrCreateAndAddUnmanagedSystem<SelectMmiRangeLodsSystem>();
             GetOrCreateAndAddUnmanagedSystem<GenerateBrgDrawCommandsSystem>();
-#if !UNITY_6000_0_OR_NEWER
-            GetOrCreateAndAddUnmanagedSystem<SetRenderVisibilityFeedbackFlagsSystem>();
-#endif
         }
     }
 
-#if UNITY_6000_0_OR_NEWER
     /// <summary>
     /// This super system executes for each dispatch pass callback from Unity and may
     /// run multiple times per frame. If you need a new hook point into this culling loop
@@ -264,7 +252,6 @@ namespace Latios.Kinemation.Systems
             GetOrCreateAndAddUnmanagedSystem<SetRenderVisibilityFeedbackFlagsSystem>();
         }
     }
-#endif
 
     /// <summary>
     /// This super system executes special dispatch culling systems in round-robin fashion.
@@ -281,6 +268,7 @@ namespace Latios.Kinemation.Systems
             EnableSystemSorting = false;
 
             GetOrCreateAndAddManagedSystem<DispatchRoundRobinEarlyExtensionsSuperSystem>();
+            GetOrCreateAndAddUnmanagedSystem<UploadUniqueMeshesSystem>();
             GetOrCreateAndAddUnmanagedSystem<UploadDynamicMeshesSystem>();
             GetOrCreateAndAddUnmanagedSystem<BlendShapesDispatchSystem>();
             GetOrCreateAndAddUnmanagedSystem<SkinningDispatchSystem>();
@@ -308,9 +296,7 @@ namespace Latios.Kinemation.Systems
         protected override void CreateSystems()
         {
             GetOrCreateAndAddManagedSystem<KinemationCullingSuperSystem>();
-#if UNITY_6000_0_OR_NEWER
             GetOrCreateAndAddManagedSystem<KinemationCullingDispatchSuperSystem>();
-#endif
         }
 
         // This is just for showing in the Editor.
