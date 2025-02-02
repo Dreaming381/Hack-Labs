@@ -44,6 +44,7 @@ namespace C3
                 ecs                   = new ComponentBrokerBuilder(Allocator.Temp).With<UnikaScripts>().WithTransformAspect().Build(ref state, Allocator.Persistent)
             };
             m_query = state.Fluent().With<UnikaScripts>().Build();
+            latiosWorld.worldBlackboardEntity.AddBuffer<UnikaScripts>();
         }
 
         public void OnNewScene(ref SystemState state) => updateContext.sceneBlackboardEntity = latiosWorld.sceneBlackboardEntity;
@@ -61,7 +62,7 @@ namespace C3
             updateContext.elapsedTime = SystemAPI.Time.ElapsedTime;
             updateContext.ecs.Update(ref state);
             var job = new Job { updateContext = updateContext };
-            state.Dependency                  = job.ScheduleByRef(m_query, state.Dependency);
+            state.Dependency                  = job.ScheduleParallelByRef(m_query, state.Dependency);
         }
 
         [BurstCompile]
