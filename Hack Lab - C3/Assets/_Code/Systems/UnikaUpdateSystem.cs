@@ -17,7 +17,8 @@ namespace C3
         public double elapsedTime;
         public float  deltaTime;
 
-        public ComponentBroker ecs;
+        public ComponentBroker                        ecs;
+        [ReadOnly] public NativeList<EntityArchetype> archetypes;
     }
 
     public partial interface IUnikaUpdate : IUnikaInterface
@@ -41,7 +42,8 @@ namespace C3
             updateContext = new UnikaUpdateContext
             {
                 worldBlackboardEntity = latiosWorld.worldBlackboardEntity,
-                ecs                   = new ComponentBrokerBuilder(Allocator.Temp).With<UnikaScripts>().WithTransformAspect().Build(ref state, Allocator.Persistent)
+                ecs                   = new ComponentBrokerBuilder(Allocator.Temp).With<UnikaScripts>().WithTransformAspect().Build(ref state, Allocator.Persistent),
+                archetypes            = new NativeList<EntityArchetype>(Allocator.Persistent)
             };
             m_query = state.Fluent().With<UnikaScripts>().Build();
             latiosWorld.worldBlackboardEntity.AddBuffer<UnikaScripts>();
@@ -53,6 +55,7 @@ namespace C3
         public void OnDestroy(ref SystemState state)
         {
             updateContext.ecs.Dispose();
+            updateContext.archetypes.Dispose();
         }
 
         [BurstCompile]
@@ -61,6 +64,8 @@ namespace C3
             updateContext.deltaTime   = SystemAPI.Time.DeltaTime;
             updateContext.elapsedTime = SystemAPI.Time.ElapsedTime;
             updateContext.ecs.Update(ref state);
+            updateContext.archetypes.Clear();
+            state.EntityManager.GetAllArchetypes(updateContext.archetypes);
             var job = new Job { updateContext = updateContext };
             state.Dependency                  = job.ScheduleParallelByRef(m_query, state.Dependency);
         }
