@@ -3,8 +3,10 @@ using Latios.Authoring;
 using Latios.Transforms;
 using Latios.Unika;
 using Latios.Unika.Authoring;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace C3
@@ -51,6 +53,21 @@ namespace C3
                 }
 
                 UnityEngine.Debug.Log($"TempQuery found {queryCount} entities with transforms and this entity was at index {queryIndex}");
+            }
+        }
+
+        [BurstCompile]
+        partial struct TestWrapper
+        {
+            partial struct Col : ICollectionComponent
+            {
+                public JobHandle TryDispose(JobHandle inputDeps)
+                {
+                    return inputDeps;
+                }
+
+                void WhatHappened() {
+                }
             }
         }
     }
