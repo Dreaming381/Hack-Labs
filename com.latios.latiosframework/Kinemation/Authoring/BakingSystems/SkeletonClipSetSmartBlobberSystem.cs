@@ -1,15 +1,12 @@
+#if !LATIOS_DISABLE_ACL
 using System.Collections.Generic;
 using Latios.Authoring;
-using Latios.Authoring.Systems;
 using Latios.Transforms;
-using Latios.Unsafe;
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Entities.Exposed;
 using Unity.Entities.LowLevel.Unsafe;
-using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Jobs;
@@ -71,6 +68,7 @@ namespace Latios.Kinemation.Authoring
         /// <summary>
         /// Looping clips must have matching start and end poses.
         /// If the source clip does not have this, setting this value to true can correct clip.
+        /// This setting is typically not compatible with root motion.
         /// </summary>
         public bool copyFirstKeyAtEnd;
 
@@ -321,7 +319,7 @@ namespace Latios.Kinemation.Authoring.Systems
                         bool copyFirstPose,
                         SkeletonClipCompressionSettings.RootMotionOverrideMode rootMotionMode)
         {
-            int requiredSamples    = Mathf.CeilToInt(clip.frameRate * clip.length) + (copyFirstPose ? 1 : 0);
+            int requiredSamples    = Mathf.CeilToInt(clip.frameRate * clip.length + 0.1f) + (copyFirstPose ? 1 : 0);
             int requiredTransforms = requiredSamples * shadowHierarchy.length;
             int startIndex         = appendNewSamplesToThis.Length;
             appendNewSamplesToThis.ResizeUninitialized(requiredTransforms + appendNewSamplesToThis.Length);
@@ -452,4 +450,5 @@ namespace Latios.Kinemation.Authoring.Systems
         }
     }
 }
+#endif
 

@@ -1,131 +1,220 @@
-using Latios.Calligraphics.Rendering;
+using System;
+using Latios.Unsafe;
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 using static Unity.Entities.SystemAPI;
 
 namespace Latios.Calligraphics.Systems
 {
-    [WorldSystemFilter(WorldSystemFilterFlags.Default | WorldSystemFilterFlags.Editor)]
-    [UpdateInGroup(typeof(CalligraphicsUpdateSuperSystem))]
     [RequireMatchingQueriesForUpdate]
     [DisableAutoCreation]
-    public partial struct GenerateGlyphsSystem : ISystem
+    [BurstCompile]
+    public unsafe partial struct GenerateGlyphsSystem : ISystem
     {
-        EntityQuery m_query;
+        LatiosWorldUnmanaged latiosWorld;
+        EntityQuery          m_query;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            m_query = state.Fluent()
-                      .With<FontBlobReference>(    true)
-                      .With<RenderGlyph>(          false)
-                      .With<CalliByte>(            true)
-                      .With<TextBaseConfiguration>(true)
-                      .With<TextRenderControl>(    false)
-                      .Build();
+            latiosWorld = state.GetLatiosWorldUnmanaged();
+            m_query     = state.Fluent().With<CalliByte, TextBaseConfiguration>(true).WithEnabled<CalliByteChangedFlag>(true).With<RenderGlyph>(false).Build();
+
+            latiosWorld.worldBlackboardEntity.AddOrSetCollectionComponentAndDisposeOld(new GlyphTable
+            {
+                entries          = new NativeList<GlyphTable.Entry>(Allocator.Persistent),
+                glyphHashToIdMap = new NativeHashMap<ulong, uint>(1024, Allocator.Persistent),
+            });
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            state.Dependency = new Job
+            var fontTable                 = latiosWorld.worldBlackboardEntity.GetCollectionComponent<FontTable>(true);
+            var glyphTable                = latiosWorld.worldBlackboardEntity.GetCollectionComponent<GlyphTable>(false);
+            var shapeStream               = new NativeStream(m_query.CalculateChunkCountWithoutFiltering(), state.WorldUpdateAllocator);
+            var newGlyphRequestsBlocklist = new UnsafeParallelBlockList(UnsafeUtility.SizeOf<MissingGlyph>(), 128, state.WorldUpdateAllocator);
+
+            var jh = new ShapeJob
             {
-                additionalEntitiesHandle    = GetBufferTypeHandle<AdditionalFontMaterialEntity>(true),
-                calliByteHandle             = GetBufferTypeHandle<CalliByte>(true),
-                fontBlobReferenceHandle     = GetComponentTypeHandle<FontBlobReference>(true),
-                fontBlobReferenceLookup     = GetComponentLookup<FontBlobReference>(true),
-                glyphMappingElementHandle   = GetBufferTypeHandle<GlyphMappingElement>(false),
-                glyphMappingMaskHandle      = GetComponentTypeHandle<GlyphMappingMask>(true),
-                lastSystemVersion           = state.GetLiveBakeSafeLastSystemVersion(),
-                renderGlyphHandle           = GetBufferTypeHandle<RenderGlyph>(false),
-                selectorHandle              = GetBufferTypeHandle<FontMaterialSelectorForGlyph>(false),
-                textBaseConfigurationHandle = GetComponentTypeHandle<TextBaseConfiguration>(true),
-                textRenderControlHandle     = GetComponentTypeHandle<TextRenderControl>(false),
+                fontTable                 = fontTable,
+                glyphTable                = glyphTable,
+                configHandle              = GetComponentTypeHandle<TextBaseConfiguration>(true),
+                calliByteHandle           = GetBufferTypeHandle<CalliByte>(true),
+                shapeStream               = shapeStream.AsWriter(),
+                newGlyphRequestsBlocklist = newGlyphRequestsBlocklist
             }.ScheduleParallel(m_query, state.Dependency);
+
+            var missingGlyphsToAdd = new NativeList<MissingGlyphPtr>(state.WorldUpdateAllocator);
+
+            jh = new AllocateNewGlyphsJob
+            {
+                fontTable                 = fontTable,
+                glyphTable                = glyphTable,
+                newGlyphRequestsBlocklist = newGlyphRequestsBlocklist,
+                missingGlyphsToAdd        = missingGlyphsToAdd
+            }.Schedule(jh);
+
+            jh = new PopulateNewGlyphsJob
+            {
+                missingGlyphs = missingGlyphsToAdd.AsDeferredJobArray(),
+                fontTable     = fontTable,
+                glyphEntries  = glyphTable.entries.AsDeferredJobArray(),
+            }.Schedule(missingGlyphsToAdd, 4, jh);
+
+            state.Dependency = new GenerateRenderGlyphsJob
+            {
+                fontTable         = fontTable,
+                glyphTable        = glyphTable,
+                configHandle      = GetComponentTypeHandle<TextBaseConfiguration>(true),
+                calliByteHandle   = GetBufferTypeHandle<CalliByte>(true),
+                shapeStream       = shapeStream.AsReader(),
+                renderGlyphHandle = GetBufferTypeHandle<RenderGlyph>(false)
+            }.ScheduleParallel(m_query, jh);
+        }
+
+        struct MissingGlyph
+        {
+            // Todo: Identifying info
+            public ulong        hash;
+            public RenderFormat format;
+        }
+
+        struct MissingGlyphPtr : IComparable<MissingGlyphPtr>
+        {
+            public MissingGlyph* ptr;
+
+            public int CompareTo(MissingGlyphPtr other)
+            {
+                return ptr->hash.CompareTo(other.ptr->hash);
+            }
         }
 
         [BurstCompile]
-        public partial struct Job : IJobChunk
+        struct ShapeJob : IJobChunk
         {
-            public BufferTypeHandle<RenderGlyph>                  renderGlyphHandle;
-            public BufferTypeHandle<GlyphMappingElement>          glyphMappingElementHandle;
-            public BufferTypeHandle<FontMaterialSelectorForGlyph> selectorHandle;
-            public ComponentTypeHandle<TextRenderControl>         textRenderControlHandle;
+            [ReadOnly] public FontTable                                  fontTable;
+            [ReadOnly] public GlyphTable                                 glyphTable;
+            [ReadOnly] public ComponentTypeHandle<TextBaseConfiguration> configHandle;
+            [ReadOnly] public BufferTypeHandle<CalliByte>                calliByteHandle;
+            public NativeStream.Writer                                   shapeStream;
+            public UnsafeParallelBlockList                               newGlyphRequestsBlocklist;
 
-            [ReadOnly] public ComponentTypeHandle<GlyphMappingMask>          glyphMappingMaskHandle;
-            [ReadOnly] public BufferTypeHandle<CalliByte>                    calliByteHandle;
-            [ReadOnly] public ComponentTypeHandle<TextBaseConfiguration>     textBaseConfigurationHandle;
-            [ReadOnly] public ComponentTypeHandle<FontBlobReference>         fontBlobReferenceHandle;
-            [ReadOnly] public BufferTypeHandle<AdditionalFontMaterialEntity> additionalEntitiesHandle;
-            [ReadOnly] public ComponentLookup<FontBlobReference>             fontBlobReferenceLookup;
+            UnsafeHashSet<ulong> newGlyphsFoundSoFar;
 
-            public uint lastSystemVersion;
-
-            private GlyphMappingWriter m_glyphMappingWriter;
-
-            [BurstCompile]
             public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask)
             {
-                if (!(chunk.DidChange(ref glyphMappingMaskHandle, lastSystemVersion) ||
-                      chunk.DidChange(ref calliByteHandle, lastSystemVersion) ||
-                      chunk.DidChange(ref textBaseConfigurationHandle, lastSystemVersion) ||
-                      chunk.DidChange(ref fontBlobReferenceHandle, lastSystemVersion)))
-                    return;
+                if (!newGlyphsFoundSoFar.IsCreated)
+                    newGlyphsFoundSoFar = new UnsafeHashSet<ulong>(512, Allocator.Temp);
 
-                var calliBytesBuffers      = chunk.GetBufferAccessor(ref calliByteHandle);
-                var renderGlyphBuffers     = chunk.GetBufferAccessor(ref renderGlyphHandle);
-                var glyphMappingBuffers    = chunk.GetBufferAccessor(ref glyphMappingElementHandle);
-                var glyphMappingMasks      = chunk.GetNativeArray(ref glyphMappingMaskHandle);
-                var textBaseConfigurations = chunk.GetNativeArray(ref textBaseConfigurationHandle);
-                var fontBlobReferences     = chunk.GetNativeArray(ref fontBlobReferenceHandle);
-                var textRenderControls     = chunk.GetNativeArray(ref textRenderControlHandle);
+                shapeStream.BeginForEachIndex(unfilteredChunkIndex);
 
-                // Optional
-                var  selectorBuffers           = chunk.GetBufferAccessor(ref selectorHandle);
-                var  additionalEntitiesBuffers = chunk.GetBufferAccessor(ref additionalEntitiesHandle);
-                bool hasMultipleFonts          = selectorBuffers.Length > 0 && additionalEntitiesBuffers.Length > 0;
+                var configs          = (TextBaseConfiguration*)chunk.GetRequiredComponentDataPtrRO(ref configHandle);
+                var calliByteBuffers = chunk.GetBufferAccessor(ref calliByteHandle);
 
-                FontMaterialSet        fontMaterialSet        = default;
-                TextConfigurationStack textConfigurationStack = default;
-
-                for (int indexInChunk = 0; indexInChunk < chunk.Count; indexInChunk++)
+                var enumerator = new ChunkEntityEnumerator(useEnabledMask, chunkEnabledMask, chunk.Count);
+                while (enumerator.NextEntityIndex(out var entityIndex))
                 {
-                    var calliBytes            = calliBytesBuffers[indexInChunk];
-                    var renderGlyphs          = renderGlyphBuffers[indexInChunk];
-                    var fontBlobReference     = fontBlobReferences[indexInChunk];
-                    var textBaseConfiguration = textBaseConfigurations[indexInChunk];
-                    var textRenderControl     = textRenderControls[indexInChunk];
+                    var config      = configs[entityIndex];
+                    var calliString = new CalliString(calliByteBuffers[entityIndex]);
 
-                    m_glyphMappingWriter.StartWriter(glyphMappingMasks.Length > 0 ? glyphMappingMasks[indexInChunk].mask : default);
-                    if (hasMultipleFonts)
-                    {
-                        fontMaterialSet.Initialize(fontBlobReference.blob, selectorBuffers[indexInChunk], additionalEntitiesBuffers[indexInChunk], ref fontBlobReferenceLookup);
-                    }
-                    else
-                    {
-                        fontMaterialSet.Initialize(fontBlobReference.blob);
-                    }
-
-                    GlyphGeneration.CreateRenderGlyphs(ref renderGlyphs,
-                                                       ref m_glyphMappingWriter,
-                                                       ref fontMaterialSet,
-                                                       ref textConfigurationStack,
-                                                       in calliBytes,
-                                                       in textBaseConfiguration);
-
-                    if (glyphMappingBuffers.Length > 0)
-                    {
-                        var mapping = glyphMappingBuffers[indexInChunk];
-                        m_glyphMappingWriter.EndWriter(ref mapping, renderGlyphs.Length);
-                    }
-
-                    textRenderControl.flags          = TextRenderControl.Flags.Dirty;
-                    textRenderControls[indexInChunk] = textRenderControl;
+                    // Todo: Shape
                 }
+
+                shapeStream.EndForEachIndex();
+            }
+        }
+
+        [BurstCompile]
+        struct AllocateNewGlyphsJob : IJob
+        {
+            [ReadOnly] public FontTable        fontTable;
+            public GlyphTable                  glyphTable;
+            public UnsafeParallelBlockList     newGlyphRequestsBlocklist;
+            public NativeList<MissingGlyphPtr> missingGlyphsToAdd;
+
+            public void Execute()
+            {
+                // Deduplicate
+                var requestCount          = newGlyphRequestsBlocklist.Count();
+                var uniqueMissingGlyphMap = new UnsafeHashMap<ulong, MissingGlyphPtr>(requestCount, Allocator.Temp);
+                var enumerator            = newGlyphRequestsBlocklist.GetEnumerator();
+                while (enumerator.MoveNext())
+                {
+                    var ptr                                                      = (MissingGlyph*)enumerator.GetCurrentPtr();
+                    var hash                                                     = ptr->hash;
+                    uniqueMissingGlyphMap.TryAdd(hash, new MissingGlyphPtr { ptr = ptr });
+                }
+
+                // Sort for determinism to improve debugging experience
+                missingGlyphsToAdd.Capacity = uniqueMissingGlyphMap.Count;
+                uint nextIndex              = (uint)glyphTable.glyphHashToIdMap.Count;
+                foreach (var pair in uniqueMissingGlyphMap)
+                {
+                    missingGlyphsToAdd.AddNoResize(pair.Value);
+                    var nextId = nextIndex;
+                    Bits.SetBits(ref nextId, 30, 2, (uint)pair.Value.ptr->format);
+                    glyphTable.glyphHashToIdMap.Add(pair.Value.ptr->hash, nextId);
+                    nextIndex++;
+                }
+            }
+        }
+
+        [BurstCompile]
+        struct PopulateNewGlyphsJob : IJobParallelForDefer
+        {
+            [ReadOnly] public NativeArray<MissingGlyphPtr>                             missingGlyphs;
+            [ReadOnly] public FontTable                                                fontTable;
+            [NativeDisableParallelForRestriction] public NativeArray<GlyphTable.Entry> glyphEntries;
+
+            public void Execute(int i)
+            {
+                ref var missingGlyph = ref *missingGlyphs[i].ptr;
+
+                var newEntry = new GlyphTable.Entry
+                {
+                    // Todo:
+                };
+                var baseIndex               = glyphEntries.Length - missingGlyphs.Length;
+                glyphEntries[baseIndex + i] = newEntry;
+            }
+        }
+
+        [BurstCompile]
+        struct GenerateRenderGlyphsJob : IJobChunk
+        {
+            [ReadOnly] public FontTable                                  fontTable;
+            [ReadOnly] public GlyphTable                                 glyphTable;
+            [ReadOnly] public ComponentTypeHandle<TextBaseConfiguration> configHandle;
+            [ReadOnly] public BufferTypeHandle<CalliByte>                calliByteHandle;
+            [ReadOnly] public NativeStream.Reader                        shapeStream;
+            public BufferTypeHandle<RenderGlyph>                         renderGlyphHandle;
+
+            public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask)
+            {
+                shapeStream.BeginForEachIndex(unfilteredChunkIndex);
+
+                var configs            = (TextBaseConfiguration*)chunk.GetRequiredComponentDataPtrRO(ref configHandle);
+                var calliByteBuffers   = chunk.GetBufferAccessor(ref calliByteHandle);
+                var renderGlyphBuffers = chunk.GetBufferAccessor(ref renderGlyphHandle);
+
+                var enumerator = new ChunkEntityEnumerator(useEnabledMask, chunkEnabledMask, chunk.Count);
+                while (enumerator.NextEntityIndex(out var entityIndex))
+                {
+                    var config       = configs[entityIndex];
+                    var calliString  = new CalliString(calliByteBuffers[entityIndex]);
+                    var renderGlyphs = renderGlyphBuffers[entityIndex];
+
+                    // Todo: Generate glyphs
+                }
+
+                shapeStream.EndForEachIndex();
             }
         }
     }

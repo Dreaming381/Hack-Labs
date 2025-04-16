@@ -135,7 +135,7 @@ namespace Latios.Psyshock
             void Init();
         }
 
-        public struct FindPairsIniter<T> : IIniter where T : struct, IFindPairsProcessor
+        public struct FindPairsIniter<T> : IIniter where T : unmanaged, IFindPairsProcessor
         {
             public void Init()
             {
@@ -149,6 +149,7 @@ namespace Latios.Psyshock
             public void Init()
             {
                 IJobExtensions.EarlyJobInit<FindObjectsConfig<T>.FindObjectsInternal.SingleJob>();
+                IJobExtensions.EarlyJobInit<FindObjectsWorldConfig<T>.FindObjectsInternal.SingleJob>();
             }
         }
 

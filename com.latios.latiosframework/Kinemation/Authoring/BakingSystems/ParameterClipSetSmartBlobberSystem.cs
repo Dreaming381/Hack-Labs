@@ -1,9 +1,9 @@
+#if !LATIOS_DISABLE_ACL
 using Latios.Authoring;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Entities.LowLevel.Unsafe;
-using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -85,9 +85,8 @@ namespace Latios.Kinemation.Authoring
         {
             var duration = curve[curve.length - 1].time;
 
-            var samples = CollectionHelper.CreateNativeArray<float>((int)math.round(sampleRate * duration), allocator, NativeArrayOptions.UninitializedMemory);
+            var samples = CollectionHelper.CreateNativeArray<float>(Mathf.CeilToInt(sampleRate * duration + 0.1f), allocator, NativeArrayOptions.UninitializedMemory);
 
-            // We subtract 1 because we need to capture the samples at t = 0 and t = 1
             float timeStep = math.rcp(sampleRate);
             for (int i = 0; i < samples.Length; i++)
             {
@@ -360,4 +359,5 @@ namespace Latios.Kinemation.Authoring.Systems
         }
     }
 }
+#endif
 

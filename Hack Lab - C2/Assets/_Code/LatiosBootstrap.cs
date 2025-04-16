@@ -30,7 +30,7 @@ public class LatiosEditorBootstrap : ICustomEditorBootstrap
 
         Latios.Transforms.TransformsBootstrap.InstallTransforms(world, world.simulationSystemGroup);
         Latios.Kinemation.KinemationBootstrap.InstallKinemation(world);
-        Latios.Calligraphics.CalligraphicsBootstrap.InstallCalligraphics(world);
+        //Latios.Calligraphics.CalligraphicsBootstrap.InstallCalligraphics(world);
 		
 		BootstrapTools.InjectRootSuperSystems(systems, world, world.simulationSystemGroup);
 
@@ -56,8 +56,8 @@ public class LatiosBootstrap : ICustomBootstrap
         Latios.Transforms.TransformsBootstrap.InstallTransforms(world, world.simulationSystemGroup);
         Latios.Myri.MyriBootstrap.InstallMyri(world);
         Latios.Kinemation.KinemationBootstrap.InstallKinemation(world);
-        Latios.Calligraphics.CalligraphicsBootstrap.InstallCalligraphics(world);
-        Latios.Calligraphics.CalligraphicsBootstrap.InstallCalligraphicsAnimations(world);
+        //Latios.Calligraphics.CalligraphicsBootstrap.InstallCalligraphics(world);
+        //Latios.Calligraphics.CalligraphicsBootstrap.InstallCalligraphicsAnimations(world);
         Latios.LifeFX.LifeFXBootstrap.InstallLifeFX(world);
 
         BootstrapTools.InjectRootSuperSystems(systems, world, world.simulationSystemGroup);

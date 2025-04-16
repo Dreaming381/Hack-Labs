@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Entities.Hybrid.Baking;
 using UnityEngine;
 
 namespace Latios.Kinemation.Authoring
@@ -63,7 +64,7 @@ namespace Latios.Kinemation.Authoring
 
                 // If the child has an Animator or SkinnedMeshRenderer, it shouldn't be animated, so delete it.
                 if (shadowChild.GetComponent<SkinnedMeshRenderer>() != null || shadowChild.GetComponent<Animator>() != null ||
-                    shadowChild.GetComponent<ExcludeFromSkeletonAuthoring>() != null)
+                    shadowChild.GetComponent<BakingOnlyEntityAuthoring>() != null || shadowChild.GetComponent<ExcludeFromSkeletonAuthoring>() != null)
                 {
                     s_immediateChildrenToDestroy.Add(shadowChild);
                     continue;
@@ -92,7 +93,8 @@ namespace Latios.Kinemation.Authoring
 
                 // If the child has an Animator or SkinnedMeshRenderer, it shouldn't be animated, so delete it.
                 if (shadowChild.GetComponent<SkinnedMeshRenderer>() != null || shadowChild.GetComponent<Animator>() != null ||
-                    shadowChild.GetComponent<SocketAuthoring>() != null || shadowChild.GetComponent<ExcludeFromSkeletonAuthoring>() != null)
+                    shadowChild.GetComponent<BakingOnlyEntityAuthoring>() != null || shadowChild.GetComponent<SocketAuthoring>() != null ||
+                    shadowChild.GetComponent<ExcludeFromSkeletonAuthoring>() != null)
                 {
                     RecurseTagSkinnedOrDelete(sourceChild, shadowChild);
                     continue;
@@ -116,7 +118,9 @@ namespace Latios.Kinemation.Authoring
             foreach (var toDestroy in s_immediateChildrenToDestroy)
             {
                 if (toDestroy != null)
+                {
                     UnityEngine.Object.DestroyImmediate(toDestroy.gameObject);
+                }
             }
             s_immediateChildrenToDestroy.Clear();
 
@@ -126,6 +130,10 @@ namespace Latios.Kinemation.Authoring
                 {
                     var tracker    = shadow.gameObject.AddComponent<HideThis.ShadowCloneSkinnedMeshTracker>();
                     tracker.source = source.gameObject;
+
+                    // Unity gets totally confused if a skinned mesh is named the same as a bone. So we need to patch the name to hopefully make it less confused.
+                    // Todo: Report this.
+                    //shadow.gameObject.name += "_381plsDontMessUp";
 
                     if (source.childCount != shadow.childCount)
                         Debug.LogError("Instantiate did not preserve hierarchy. This is an internal bug between Kinemation and Unity. Please report!");

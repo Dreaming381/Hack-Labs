@@ -4,6 +4,7 @@ using Unity.Mathematics;
 
 namespace Latios.Kinemation
 {
+#if !LATIOS_DISABLE_ACL
     /// <summary>
     /// A struct which can accumulate a root motion delta transform during sampling and blending, properly accounting for looping clips.
     /// This must be initialized to default before use.
@@ -27,8 +28,8 @@ namespace Latios.Kinemation
                                float loopCycleTransitions,
                                KeyframeInterpolationMode keyframeInterpolationMode = KeyframeInterpolationMode.Interpolate)
         {
-            var sampledRoot           = blender.bufferAsQvvs.Reinterpret<TransformQvvs>()[0];
-            blender.bufferAsQvvs[0]   = default;
+            var sampledRoot           = blender.buffer[0];
+            blender.buffer[0]         = default;
             var normalizedSampledRoot = sampledRoot;
             normalizedSampledRoot.NormalizeBone();
             Accumulate(in normalizedSampledRoot, math.asfloat(sampledRoot.worldIndex), ref clip, previousClipTime, loopCycleTransitions, keyframeInterpolationMode);
@@ -149,6 +150,7 @@ namespace Latios.Kinemation
             }
         }
     }
+#endif
 
     /// <summary>
     /// Contains methods to apply "mathematical expressions" between bone transforms for working with transform deltas
@@ -163,10 +165,11 @@ namespace Latios.Kinemation
         /// <returns>Effectively result = current - previous, using appropriate "difference" metrics for each attribute of the transform</returns>
         public static TransformQvvs DeltaBetween(in TransformQvvs current, in TransformQvvs previous)
         {
+            var previousInverse = math.inverse(previous.rotation);
             return new TransformQvvs
             {
-                position   = current.position - previous.position,
-                rotation   = math.mul(current.rotation, math.inverse(previous.rotation)),
+                position   = math.rotate(previousInverse, current.position - previous.position),
+                rotation   = math.mul(current.rotation, previousInverse),
                 worldIndex = current.worldIndex,
                 scale      = current.scale / previous.scale,
                 stretch    = current.stretch / previous.stretch
@@ -201,7 +204,7 @@ namespace Latios.Kinemation
             return new TransformQvvs
             {
                 position   = deltaA.position + deltaB.position,
-                rotation   = deltaA.rotation.value + deltaB.rotation.value,
+                rotation   = deltaA.rotation.value + math.chgsign(deltaB.rotation.value, math.dot(deltaA.rotation.value, deltaB.rotation.value)),
                 scale      = deltaA.scale + deltaB.scale,
                 stretch    = deltaA.stretch + deltaB.stretch,
                 worldIndex = math.asint(math.asfloat(deltaA.worldIndex) + math.asfloat(deltaB.worldIndex)),
@@ -220,7 +223,7 @@ namespace Latios.Kinemation
         {
             return new TransformQvvs
             {
-                position   = deltaFirst.position + deltaSecond.position,
+                position   = deltaFirst.position + math.rotate(deltaFirst.rotation, deltaSecond.position),
                 rotation   = math.mul(deltaSecond.rotation, deltaFirst.rotation),
                 scale      = deltaFirst.scale * deltaSecond.scale,
                 stretch    = deltaFirst.stretch * deltaSecond.stretch,

@@ -60,6 +60,7 @@ namespace Latios.Kinemation.RuntimeBlobBuilders
 
         public string GetNameOfBone(int boneIndex) => taa[boneIndex].gameObject.name;
 
+#if !LATIOS_DISABLE_ACL
         public unsafe SkeletonClipSetSampleData Sample(ReadOnlySpan<SkeletonClipConfig> clips, AllocatorManager.AllocatorHandle allocator)
         {
             shadowHierarchy.SetActive(true);
@@ -73,7 +74,7 @@ namespace Latios.Kinemation.RuntimeBlobBuilders
             {
                 var clipConfig         = clips[i];
                 var clip               = clipConfig.clip.Value;
-                int requiredSamples    = Mathf.CeilToInt(clip.frameRate * clip.length) + (clipConfig.settings.copyFirstKeyAtEnd ? 1 : 0);
+                int requiredSamples    = Mathf.CeilToInt(clip.frameRate * clip.length + 0.1f) + (clipConfig.settings.copyFirstKeyAtEnd ? 1 : 0);
                 var requiredTransforms = requiredSamples * taa.length;
 
                 ref var output = ref result.clips.ElementAt(i);
@@ -115,6 +116,7 @@ namespace Latios.Kinemation.RuntimeBlobBuilders
 
             return result;
         }
+#endif
 
         public void Dispose() => Dispose(false);
 
@@ -130,13 +132,14 @@ namespace Latios.Kinemation.RuntimeBlobBuilders
 
         internal Transform GetShadowTransformForBone(int boneIndex) => taa[boneIndex];
 
+#if !LATIOS_DISABLE_ACL
         void SampleClip(ref UnsafeList<TransformQvvs>                          boneTransforms,
                         AnimationClip clip,
                         int startIndex,
                         bool copyFirstPose,
                         SkeletonClipCompressionSettings.RootMotionOverrideMode rootMotionMode)
         {
-            int requiredSamples = Mathf.CeilToInt(clip.frameRate * clip.length) + (copyFirstPose ? 1 : 0);
+            int requiredSamples = Mathf.CeilToInt(clip.frameRate * clip.length + 0.1f) + (copyFirstPose ? 1 : 0);
 
             var oldWrapMode                   = clip.wrapMode;
             clip.wrapMode                     = WrapMode.Clamp;
@@ -179,6 +182,7 @@ namespace Latios.Kinemation.RuntimeBlobBuilders
                 animator.applyRootMotion = backupRootMotionSettings;
             clip.wrapMode                = oldWrapMode;
         }
+#endif
 
         [BurstCompile]
         struct CaptureBoneSamplesJob : IJobParallelForTransform
@@ -196,6 +200,7 @@ namespace Latios.Kinemation.RuntimeBlobBuilders
         }
     }
 
+#if !LATIOS_DISABLE_ACL
     // Job and Burst compatible
     public struct SkeletonClipSetSampleData : IDisposable
     {
@@ -276,5 +281,6 @@ namespace Latios.Kinemation.RuntimeBlobBuilders
             events.Dispose();
         }
     }
+#endif
 }
 

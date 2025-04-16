@@ -12,6 +12,7 @@ namespace Latios.Kinemation
 {
     public readonly partial struct OptimizedSkeletonAspect
     {
+#if !LATIOS_DISABLE_ACL
         internal bool BeginSampleTrueIfAdditive(out NativeArray<AclUnity.Qvvs> targetLocalTransforms)
         {
             targetLocalTransforms          = m_boneTransforms.Reinterpret<AclUnity.Qvvs>().AsNativeArray().GetSubArray(m_currentBaseRootIndexWrite + boneCount, boneCount);
@@ -20,6 +21,7 @@ namespace Latios.Kinemation
             return (previousState & OptimizedSkeletonState.Flags.NextSampleShouldAdd) ==
                    OptimizedSkeletonState.Flags.NextSampleShouldAdd;
         }
+#endif
 
         int m_currentBaseRootIndexWrite
         {
@@ -107,6 +109,19 @@ namespace Latios.Kinemation
                 currentNormalized.NormalizeBone();
                 inertialBlends[i].StartNewBlend(in currentNormalized, previousLocals[i], twoAgoLocals[i], rcpTime, maxBlendDuration);
             }
+        }
+
+        unsafe bool IsFinishedWithInertialBlendInternal(float timesSinceStartOfBlend)
+        {
+            // We go unsafe here to avoid copying as these are large
+            var inertialBlends = (InertialBlendingTransformState*)m_bonesInertialBlendStates.Reinterpret<InertialBlendingTransformState>().GetUnsafePtr();
+            var count          = m_bonesInertialBlendStates.Length;
+            for (int i = 0; i < count; i++)
+            {
+                if (inertialBlends[i].NeedsBlend(timesSinceStartOfBlend))
+                    return false;
+            }
+            return true;
         }
 
         unsafe void InertialBlendInternal(float timeSinceStartOfBlend)
